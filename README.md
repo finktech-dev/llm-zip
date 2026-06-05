@@ -1,7 +1,7 @@
 # 🗜️ llm-zip
 
 <p align="center">
-  <a href="https://github.com/FinkTech/llm-zip/releases"><img src="https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge" alt="Version"></a>
+  <a href="https://github.com/finktech-dev/llm-zip/releases"><img src="https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge" alt="License"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"></a>
@@ -9,9 +9,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/microsoft/LLMLingua"><img src="https://img.shields.io/badge/Powered_by-LLMLingua--2-FF6F00?style=flat-square" alt="LLMLingua-2"></a>
+  <a href="https://github.com/microsoft/LLMLingua"><img src="https://img.shields.io/badge/Powered_by-LLMLingua--2-FF6F00?style=flat-square&logo=microsoft&logoColor=white" alt="LLMLingua-2"></a>
   <a href="https://github.com/microsoft/markitdown"><img src="https://img.shields.io/badge/Files_via-MarkItDown-0078D4?style=flat-square&logo=microsoft&logoColor=white" alt="MarkItDown"></a>
-  <a href="https://github.com/BerriAI/litellm"><img src="https://img.shields.io/badge/Pricing-LiteLLM-7C3AED?style=flat-square" alt="LiteLLM"></a>
+  <a href="https://github.com/BerriAI/litellm"><img src="https://img.shields.io/badge/Pricing-LiteLLM-7C3AED?style=flat-square&logo=github&logoColor=white" alt="LiteLLM"></a>
   <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat-square" alt="Ruff"></a>
 </p>
 
@@ -39,7 +39,9 @@ AI inference is getting expensive. As context windows grow and agentic workflows
 
 llm-zip was built out of a simple need: compress context before it reaches the model, without changing anything else in the stack. No proxy. No middleware. No API keys. Just a sidecar you call over HTTP, that hands back a smaller text and tells you exactly how much you saved.
 
-It started as an internal tool for large-scale RAG pipelines. It's open source because the problem is universal.
+It started as an internal tool. It's open source because the problem is universal.
+
+> Curious about how this started? Read [STORY.md](STORY.md).
 
 ---
 
@@ -67,6 +69,14 @@ llm-zip never touches your API keys or your model calls. It only compresses.
 > **Requires Docker.** First-time model download is ~700MB and takes 2–5 min.
 
 **Step 1 — Configure**
+
+Windows (CMD / PowerShell):
+```powershell
+copy .llmzip.config.example .llmzip.config
+notepad .llmzip.config
+```
+
+Linux / macOS:
 ```bash
 cp .llmzip.config.example .llmzip.config
 nano .llmzip.config
@@ -187,26 +197,24 @@ llm-zip is powered by Microsoft's LLMLingua-2. According to their [research pape
 <details>
 <summary>📋 Hardware benchmarks (click to expand)</summary>
 
-> Community-maintained — submit your real-world results via PR.
+> **Community-maintained — no verified numbers yet.**
+> If you run llm-zip on real hardware, please submit your results via PR. Include: hardware, model (`bert-base` or `xlm-roberta-large`), input token count, and time to compress.
 
-| Hardware                     | Model     | Input Tokens | Time to Compress |
-| :--------------------------- | :-------- | :----------- | :--------------- |
-| Standard CPU (AWS t3.medium) | bert-base | 15,000       | ~1.2s            |
-| M-Series Mac (M2 Pro)        | bert-base | 30,000       | ~0.8s            |
+| Hardware | Model | Input Tokens | Time to Compress |
+| :------- | :---- | :----------- | :--------------- |
+| —        | —     | —            | —                |
 
 </details>
 
 <details>
 <summary>📋 Use-case benchmarks (click to expand)</summary>
 
-> Community-maintained — submit your real-world results via PR.
+> **Community-maintained — no verified numbers yet.**
+> If you use llm-zip in a real workload, please submit your results via PR. Include: use case, language, token counts, ratio, preservation score, and model used for savings estimation.
 
-| Use case               | Tokens in | Tokens out | Ratio | Preservation | Est. saving (gpt-4o-mini) |
-| :--------------------- | :-------- | :--------- | :---- | :----------- | :------------------------ |
-| News article (EN)      | 2,400     | 720        | 3.3×  | 0.93         | $0.00026                  |
-| Technical docs (EN)    | 8,400     | 1,680      | 5.0×  | 0.89         | $0.00101                  |
-| RAG context (ES)       | 12,000    | 3,600      | 3.3×  | 0.91         | $0.00126                  |
-| Long chat history (EN) | 6,000     | 1,200      | 5.0×  | 0.88         | $0.00068                  |
+| Use case | Tokens in | Tokens out | Ratio | Preservation | Est. saving |
+| :------- | :-------- | :--------- | :---- | :----------- | :---------- |
+| —        | —         | —          | —     | —            | —           |
 
 </details>
 
@@ -229,7 +237,7 @@ The most valuable contributions right now are benchmark results across different
 Bug reports, feature requests, and code contributions are also welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ```bash
-git clone https://github.com/FinkTech/llm-zip.git
+git clone https://github.com/finktech-dev/llm-zip.git
 cd llm-zip
 pip install -e ".[dev]"
 pytest
@@ -239,7 +247,7 @@ pytest
 
 ## License & Disclaimer
 
-MIT © [Ariel A. Fink](https://github.com/FinkTech)
+MIT © [FinkTech](https://github.com/finktech-dev)
 
 Built utilizing [LLMLingua-2](https://github.com/microsoft/LLMLingua) and [MarkItDown](https://github.com/microsoft/markitdown) open-source libraries.
 
