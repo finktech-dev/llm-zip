@@ -1,0 +1,58 @@
+services:
+
+  llmzip-models:
+    build: .
+    container_name: llmzip-models
+    command: llmzip download-models --serve
+    volumes:
+      - llmzip_models:/app/models
+    networks:
+      - llmzip-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 12         # up to 60s for first-time model download
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+  llmzip-api:
+    build: .
+    container_name: llmzip-api
+    volumes:
+      - ./.llmzip.config:/app/.llmzip.config:ro
+      - ./.llmzipignore:/app/.llmzipignore:ro
+      - ./.llmzipignore.local:/app/.llmzipignore.local:ro
+    ports:
+      - "${LLMZIP_PORT:-8000}:8000"
+    networks:
+      - llmzip-internal
+    environment:
+      MODELS_URL: http://llmzip-models:8001
+    depends_on:
+      llmzip-models:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+
+networks:
+  llmzip-internal:
+    driver: bridge
+    internal: false     # api needs outbound for LiteLLM pricing fetch
+
+volumes:
+  llmzip_models:        # persists between restarts, survives docker-compose down

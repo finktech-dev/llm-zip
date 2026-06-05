@@ -1,0 +1,11 @@
+# .llmzipignore.local
+# Sensitive patterns — system prompts, internal identifiers, proprietary text.
+# This file is in .gitignore — never commit it.
+
+# Example: skip specific system prompts by their opening line
+# You are an expert customs broker*
+# You are a helpful assistant specialized in*
+
+# Example: skip internal knowledge base files
+# kb/internal/**
+# prompts/system_*.txt

@@ -1,0 +1,11 @@
+# .llmzipignore
+# Texts and file patterns that llm-zip should skip — returned as-is.
+# Uses .gitignore-style glob matching.
+# Safe to commit — put sensitive patterns in .llmzipignore.local instead.
+
+# Skip test fixtures
+tests/fixtures/**
+*.fixture.txt
+
+# Skip very short utility texts
+utils_*.txt

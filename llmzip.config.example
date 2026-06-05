@@ -1,0 +1,35 @@
+[server]
+; Maximum tokens accepted per request — tune to your hardware
+MAX_TOKENS=
+; Below this threshold, text is returned as-is (skipped=true)
+MIN_TOKENS_TO_COMPRESS=500
+PORT=8000
+
+[compression]
+; Target compression ratio — 0.1 (aggressive) to 0.9 (light)
+DEFAULT_RATIO=0.5
+; Used for savings estimation in responses
+; Options: gpt-4o-mini, gpt-5.4-mini, claude-haiku-4-5, gemini-2.5-flash-lite, deepseek-v4-flash
+DEFAULT_MODEL=
+; Maximum texts per batch request
+MAX_BATCH_SIZE=25
+; Parallel workers for batch processing
+BATCH_WORKERS=4
+; Compression model — bert-base uses ~4GB RAM, xlm-roberta-large uses ~8GB
+; Options: bert-base | xlm-roberta-large
+COMPRESSION_MODEL=bert-base
+
+[pricing]
+; Seconds before re-fetching LiteLLM prices (0 = always fetch)
+CACHE_TTL=3600
+
+[rate_limit]
+; Set ENABLED=true to activate rate limiting
+ENABLED=false
+REQUESTS_PER_MINUTE=60
+REQUESTS_PER_DAY=10000
+
+[features]
+; Enables MarkItDown — allows compressing PDF, Word, Excel, PowerPoint files
+; Adds ~200MB of dependencies
+FILE_CONVERSION=true

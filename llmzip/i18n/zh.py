@@ -1,0 +1,61 @@
+STRINGS: dict[str, str] = {
+    # compress_cmd
+    "compress.error.no_input":          "错误：请提供文件或通过 stdin 输入文本。",
+    "compress.warning.conversion_disabled": "警告：配置中已禁用文件转换 — 将作为纯文本处理。",
+    "compress.warning.generic":         "警告：{warning}",
+    "compress.error.above_max_tokens":  "错误：文本超过 MAX_TOKENS（{max_tokens}）。检测到约 {tokens} 个 token。",
+    "compress.skipped":                 "⚠  已跳过 — 低于 MIN_TOKENS_TO_COMPRESS（{threshold}），返回原文。",
+    "compress.written":                 "✓ 已写入 {path}",
+    "compress.metrics":                 "✓ {original} → {compressed} tokens（{ratio}×）| 评分：{score} | 节省：~{saving}（{model}）",
+
+    # prices_cmd
+    "prices.header":                    "模型",
+    "prices.col_input":                 "输入 $/百万",
+    "prices.col_output":                "输出 $/百万",
+    "prices.no_results":                "未找到提供商的模型：{provider}",
+    "prices.providers_header":          "可用提供商",
+
+    # download_models
+    "download.start_compression":       "正在下载压缩模型...",
+    "download.start_scorer":            "正在下载语义评分模型...",
+    "download.all_ready":               "\n✓ 所有模型已就绪。\n",
+    "download.already_done":            "  ✓ 压缩模型已下载（{model}）",
+    "download.in_progress":             "  正在下载 {model} — 这可能需要几分钟...",
+    "download.compression_ready":       "  ✓ {model} 已就绪",
+    "download.compression_failed":      "  ❌ 下载压缩模型失败：{error}",
+    "download.scorer_already_done":     "  ✓ 语义评分模型已下载",
+    "download.scorer_in_progress":      "  正在下载 {model}...",
+    "download.scorer_ready":            "  ✓ 语义评分模型已就绪",
+    "download.scorer_failed":           "  ❌ 下载评分模型失败：{error}",
+    "download.serving":                 "模型容器已就绪 — 在端口 8001 上提供 /ready 服务",
+
+    # interactive
+    "interactive.select_provider":      "按提供商筛选",
+    "interactive.select_provider_all":  "所有提供商",
+    "interactive.select_source":        "输入来源",
+    "interactive.source_file":          "文件",
+    "interactive.source_stdin":         "Stdin（粘贴文本）",
+    "interactive.select_ratio":         "压缩比例",
+    "interactive.ratio_aggressive":     "0.3 — 强力压缩",
+    "interactive.ratio_balanced":       "0.5 — 均衡（推荐）",
+    "interactive.ratio_light":          "0.6 — 轻度压缩",
+    "interactive.ratio_very_light":     "0.7 — 极轻压缩",
+    "interactive.ratio_custom":         "自定义",
+    "interactive.enter_ratio":          "输入比例（0.1–0.9）",
+    "interactive.select_model":         "用于估算节省费用的目标模型",
+    "interactive.model_other":          "其他（输入模型名称）",
+    "interactive.enter_model":          "输入模型名称",
+    "interactive.select_output":        "输出目标",
+    "interactive.output_stdout":        "stdout（打印到终端）",
+    "interactive.output_file":          "文件",
+    "interactive.select_compression_model": "压缩模型",
+    "interactive.enter_filepath":       "文件路径",
+
+    # config/loader
+    "config.not_found":                 "未找到配置文件：{path}\n  执行：cp .llmzip.config.example .llmzip.config\n  然后填写必填值。",
+    "config.missing_values":            "配置中缺少必填项：\n{fields}\n\n  请编辑 .llmzip.config 并填写缺失的值。",
+    "config.invalid_ratio":             "DEFAULT_RATIO 必须在 0.1 到 0.9 之间，当前值为：{value}",
+    "config.invalid_compression_model": "COMPRESSION_MODEL 必须为 'bert-base' 或 'xlm-roberta-large'，当前值为：{value}",
+    "config.invalid_value":             "无效的配置值：{error}",
+    "config.error_prefix":              "\n❌ LLMZip 配置错误：\n   {message}\n",
+}

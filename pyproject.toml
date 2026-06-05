@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-zip"
+version = "0.1.0"
+description = "Context compression sidecar for LLM applications. Reduce token costs 3-5x before calling any AI API."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "Ariel A. Fink", email = "hello.finksystems@gmail.com" }]
+keywords = [
+    "llm", "context-compression", "token-optimization",
+    "fastapi", "llmlingua", "rag", "ai-cost-reduction"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "llmlingua>=0.2.2",
+    "sentence-transformers>=3.0.0",
+    "markitdown[all]>=0.1.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "pydantic>=2.0.0",
+    "python-multipart>=0.0.9",
+    "typer>=0.12.0",
+    "tiktoken>=0.7.0",
+    "httpx>=0.27.0",
+    "questionary>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-mock>=3.14.0",
+    "httpx>=0.27.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[project.scripts]
+llmzip = "llmzip.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["llmzip*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "integration: requires models to be downloaded (skipped by default)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true

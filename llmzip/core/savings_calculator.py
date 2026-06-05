@@ -1,0 +1,63 @@
+from dataclasses import dataclass
+
+from llmzip.core.token_counter import count_tokens
+from llmzip.pricing.resolver import resolve_prices
+
+# models shown in every response regardless of DEFAULT_MODEL
+_FEATURED_MODELS = [
+    "gpt-4o-mini",
+    "gpt-5.4-mini",
+    "claude-haiku-4-5",
+    "gemini-2.5-flash-lite",
+    "deepseek-v4-flash",
+]
+
+
+@dataclass
+class SavingsResult:
+    estimated_savings: dict[str, str]
+    pricing_accuracy: str
+    pricing_note: str
+
+
+def calculate_savings(
+    original_text: str,
+    compressed_text: str,
+    default_model: str,
+) -> SavingsResult:
+    prices = resolve_prices()
+    models_to_show = _build_model_list(default_model)
+
+    savings: dict[str, str] = {}
+    accuracy = "exact"
+
+    for model in models_to_show:
+        price_entry = prices.get(model)
+        if price_entry is None:
+            continue
+
+        original_tokens, model_accuracy = count_tokens(original_text, model)
+        compressed_tokens, _ = count_tokens(compressed_text, model)
+        tokens_saved = max(0, original_tokens - compressed_tokens)
+
+        # input token price per million → per token
+        price_per_token = price_entry["input"] / 1_000_000
+        saved_usd = tokens_saved * price_per_token
+
+        savings[model] = f"${saved_usd:.6f}"
+
+        if model_accuracy != "exact":
+            accuracy = "estimated±10%"
+
+    return SavingsResult(
+        estimated_savings=savings,
+        pricing_accuracy=accuracy,
+        pricing_note=prices.get("_meta", {}).get("note", ""),
+    )
+
+
+def _build_model_list(default_model: str) -> list[str]:
+    models = list(_FEATURED_MODELS)
+    if default_model not in models:
+        models.insert(0, default_model)
+    return models

@@ -1,0 +1,61 @@
+STRINGS: dict[str, str] = {
+    # compress_cmd
+    "compress.error.no_input":          "Error: proporcioná un archivo o enviá texto por stdin.",
+    "compress.warning.conversion_disabled": "Advertencia: conversión de archivos desactivada en la config — tratando como texto plano.",
+    "compress.warning.generic":         "Advertencia: {warning}",
+    "compress.error.above_max_tokens":  "Error: el texto supera MAX_TOKENS ({max_tokens}). Se detectaron ~{tokens} tokens.",
+    "compress.skipped":                 "⚠  Omitido — por debajo de MIN_TOKENS_TO_COMPRESS ({threshold}). Se devuelve el original.",
+    "compress.written":                 "✓ Guardado en {path}",
+    "compress.metrics":                 "✓ {original} → {compressed} tokens ({ratio}×) | score: {score} | ahorro: ~{saving} ({model})",
+
+    # prices_cmd
+    "prices.header":                    "Modelo",
+    "prices.col_input":                 "Input $/M",
+    "prices.col_output":                "Output $/M",
+    "prices.no_results":                "No se encontraron modelos para el proveedor: {provider}",
+    "prices.providers_header":          "Proveedores disponibles",
+
+    # download_models
+    "download.start_compression":       "Descargando modelo de compresión...",
+    "download.start_scorer":            "Descargando modelo de scoring semántico...",
+    "download.all_ready":               "\n✓ Todos los modelos listos.\n",
+    "download.already_done":            "  ✓ Modelo de compresión ya descargado ({model})",
+    "download.in_progress":             "  Descargando {model} — esto puede tardar unos minutos...",
+    "download.compression_ready":       "  ✓ {model} listo",
+    "download.compression_failed":      "  ❌ Error al descargar el modelo de compresión: {error}",
+    "download.scorer_already_done":     "  ✓ Modelo de scoring ya descargado",
+    "download.scorer_in_progress":      "  Descargando {model}...",
+    "download.scorer_ready":            "  ✓ Modelo de scoring listo",
+    "download.scorer_failed":           "  ❌ Error al descargar el modelo de scoring: {error}",
+    "download.serving":                 "Contenedor de modelos listo — sirviendo /ready en el puerto 8001",
+
+    # interactive
+    "interactive.select_provider":      "Filtrar por proveedor",
+    "interactive.select_provider_all":  "Todos los proveedores",
+    "interactive.select_source":        "Fuente de entrada",
+    "interactive.source_file":          "Archivo",
+    "interactive.source_stdin":         "Stdin (pegá el texto)",
+    "interactive.select_ratio":         "Ratio de compresión",
+    "interactive.ratio_aggressive":     "0.3 — agresivo",
+    "interactive.ratio_balanced":       "0.5 — equilibrado (recomendado)",
+    "interactive.ratio_light":          "0.6 — suave",
+    "interactive.ratio_very_light":     "0.7 — muy suave",
+    "interactive.ratio_custom":         "Personalizado",
+    "interactive.enter_ratio":          "Ingresá el ratio (0.1–0.9)",
+    "interactive.select_model":         "Modelo destino para estimar el ahorro",
+    "interactive.model_other":          "Otro (escribí el nombre del modelo)",
+    "interactive.enter_model":          "Ingresá el nombre del modelo",
+    "interactive.select_output":        "Destino del output",
+    "interactive.output_stdout":        "stdout (mostrar en terminal)",
+    "interactive.output_file":          "Archivo",
+    "interactive.select_compression_model": "Modelo de compresión",
+    "interactive.enter_filepath":       "Ruta del archivo",
+
+    # config/loader
+    "config.not_found":                 "Archivo de config no encontrado: {path}\n  Ejecutá: cp .llmzip.config.example .llmzip.config\n  Luego completá los valores requeridos.",
+    "config.missing_values":            "Faltan valores requeridos en la config:\n{fields}\n\n  Editá .llmzip.config y completá los valores faltantes.",
+    "config.invalid_ratio":             "DEFAULT_RATIO debe estar entre 0.1 y 0.9, se recibió: {value}",
+    "config.invalid_compression_model": "COMPRESSION_MODEL debe ser 'bert-base' o 'xlm-roberta-large', se recibió: {value}",
+    "config.invalid_value":             "Valor de config inválido: {error}",
+    "config.error_prefix":              "\n❌ Error de configuración de LLMZip:\n   {message}\n",
+}

@@ -1,0 +1,61 @@
+STRINGS: dict[str, str] = {
+    # compress_cmd
+    "compress.error.no_input":          "エラー：ファイルを指定するか、stdinからテキストを入力してください。",
+    "compress.warning.conversion_disabled": "警告：設定でファイル変換が無効になっています — プレーンテキストとして処理します。",
+    "compress.warning.generic":         "警告：{warning}",
+    "compress.error.above_max_tokens":  "エラー：テキストが MAX_TOKENS（{max_tokens}）を超えています。約 {tokens} トークンが検出されました。",
+    "compress.skipped":                 "⚠  スキップ — MIN_TOKENS_TO_COMPRESS（{threshold}）未満のため、元のテキストを返します。",
+    "compress.written":                 "✓ {path} に書き込みました",
+    "compress.metrics":                 "✓ {original} → {compressed} トークン（{ratio}×）| スコア：{score} | 節約：~{saving}（{model}）",
+
+    # prices_cmd
+    "prices.header":                    "モデル",
+    "prices.col_input":                 "入力 $/百万",
+    "prices.col_output":                "出力 $/百万",
+    "prices.no_results":                "プロバイダーのモデルが見つかりません：{provider}",
+    "prices.providers_header":          "利用可能なプロバイダー",
+
+    # download_models
+    "download.start_compression":       "圧縮モデルをダウンロード中...",
+    "download.start_scorer":            "セマンティックスコアリングモデルをダウンロード中...",
+    "download.all_ready":               "\n✓ すべてのモデルの準備が完了しました。\n",
+    "download.already_done":            "  ✓ 圧縮モデルは既にダウンロード済みです（{model}）",
+    "download.in_progress":             "  {model} をダウンロード中 — 数分かかる場合があります...",
+    "download.compression_ready":       "  ✓ {model} の準備完了",
+    "download.compression_failed":      "  ❌ 圧縮モデルのダウンロードに失敗しました：{error}",
+    "download.scorer_already_done":     "  ✓ スコアリングモデルは既にダウンロード済みです",
+    "download.scorer_in_progress":      "  {model} をダウンロード中...",
+    "download.scorer_ready":            "  ✓ スコアリングモデルの準備完了",
+    "download.scorer_failed":           "  ❌ スコアリングモデルのダウンロードに失敗しました：{error}",
+    "download.serving":                 "モデルコンテナ準備完了 — ポート 8001 で /ready を提供中",
+
+    # interactive
+    "interactive.select_provider":      "プロバイダーで絞り込む",
+    "interactive.select_provider_all":  "すべてのプロバイダー",
+    "interactive.select_source":        "入力ソース",
+    "interactive.source_file":          "ファイル",
+    "interactive.source_stdin":         "Stdin（テキストを貼り付け）",
+    "interactive.select_ratio":         "圧縮比率",
+    "interactive.ratio_aggressive":     "0.3 — 強力圧縮",
+    "interactive.ratio_balanced":       "0.5 — バランス（推奨）",
+    "interactive.ratio_light":          "0.6 — 軽圧縮",
+    "interactive.ratio_very_light":     "0.7 — 最軽圧縮",
+    "interactive.ratio_custom":         "カスタム",
+    "interactive.enter_ratio":          "比率を入力（0.1–0.9）",
+    "interactive.select_model":         "節約額推定に使用するターゲットモデル",
+    "interactive.model_other":          "その他（モデル名を入力）",
+    "interactive.enter_model":          "モデル名を入力",
+    "interactive.select_output":        "出力先",
+    "interactive.output_stdout":        "stdout（ターミナルに出力）",
+    "interactive.output_file":          "ファイル",
+    "interactive.select_compression_model": "圧縮モデル",
+    "interactive.enter_filepath":       "ファイルパス",
+
+    # config/loader
+    "config.not_found":                 "設定ファイルが見つかりません：{path}\n  実行：cp .llmzip.config.example .llmzip.config\n  その後、必須項目を入力してください。",
+    "config.missing_values":            "設定に必須項目がありません：\n{fields}\n\n  .llmzip.config を編集して不足している値を入力してください。",
+    "config.invalid_ratio":             "DEFAULT_RATIO は 0.1 から 0.9 の間でなければなりません。入力値：{value}",
+    "config.invalid_compression_model": "COMPRESSION_MODEL は 'bert-base' または 'xlm-roberta-large' でなければなりません。入力値：{value}",
+    "config.invalid_value":             "無効な設定値：{error}",
+    "config.error_prefix":              "\n❌ LLMZip 設定エラー：\n   {message}\n",
+}

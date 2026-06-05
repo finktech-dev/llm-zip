@@ -1,0 +1,61 @@
+STRINGS: dict[str, str] = {
+    # compress_cmd
+    "compress.error.no_input":          "Error: provide a file or pipe text via stdin.",
+    "compress.warning.conversion_disabled": "Warning: file conversion disabled in config — treating as plain text.",
+    "compress.warning.generic":         "Warning: {warning}",
+    "compress.error.above_max_tokens":  "Error: text exceeds MAX_TOKENS ({max_tokens}). Got ~{tokens} tokens.",
+    "compress.skipped":                 "⚠  Skipped — below MIN_TOKENS_TO_COMPRESS ({threshold}). Returning original.",
+    "compress.written":                 "✓ Written to {path}",
+    "compress.metrics":                 "✓ {original} → {compressed} tokens ({ratio}×) | score: {score} | saved: ~{saving} ({model})",
+
+    # prices_cmd
+    "prices.header":                    "Model",
+    "prices.col_input":                 "Input $/M",
+    "prices.col_output":                "Output $/M",
+    "prices.no_results":                "No models found for provider: {provider}",
+    "prices.providers_header":          "Available providers",
+
+    # download_models
+    "download.start_compression":       "Downloading compression model...",
+    "download.start_scorer":            "Downloading semantic scorer model...",
+    "download.all_ready":               "\n✓ All models ready.\n",
+    "download.already_done":            "  ✓ Compression model already downloaded ({model})",
+    "download.in_progress":             "  Downloading {model} — this may take a few minutes...",
+    "download.compression_ready":       "  ✓ {model} ready",
+    "download.compression_failed":      "  ❌ Failed to download compression model: {error}",
+    "download.scorer_already_done":     "  ✓ Semantic scorer already downloaded",
+    "download.scorer_in_progress":      "  Downloading {model}...",
+    "download.scorer_ready":            "  ✓ Semantic scorer ready",
+    "download.scorer_failed":           "  ❌ Failed to download scorer model: {error}",
+    "download.serving":                 "Models container ready — serving /ready on port 8001",
+
+    # interactive
+    "interactive.select_provider":      "Filter by provider",
+    "interactive.select_provider_all":  "All providers",
+    "interactive.select_source":        "Input source",
+    "interactive.source_file":          "File",
+    "interactive.source_stdin":         "Stdin (paste text)",
+    "interactive.select_ratio":         "Compression ratio",
+    "interactive.ratio_aggressive":     "0.3 — aggressive",
+    "interactive.ratio_balanced":       "0.5 — balanced (recommended)",
+    "interactive.ratio_light":          "0.6 — light",
+    "interactive.ratio_very_light":     "0.7 — very light",
+    "interactive.ratio_custom":         "Custom",
+    "interactive.enter_ratio":          "Enter ratio (0.1–0.9)",
+    "interactive.select_model":         "Target model for savings estimation",
+    "interactive.model_other":          "Other (type model name)",
+    "interactive.enter_model":          "Enter model name",
+    "interactive.select_output":        "Output destination",
+    "interactive.output_stdout":        "stdout (print to terminal)",
+    "interactive.output_file":          "File",
+    "interactive.select_compression_model": "Compression model",
+    "interactive.enter_filepath":       "File path",
+
+    # config/loader
+    "config.not_found":                 "Config file not found: {path}\n  Run: cp .llmzip.config.example .llmzip.config\n  Then fill in the required values.",
+    "config.missing_values":            "Missing required config values:\n{fields}\n\n  Edit .llmzip.config and fill in the missing values.",
+    "config.invalid_ratio":             "DEFAULT_RATIO must be between 0.1 and 0.9, got: {value}",
+    "config.invalid_compression_model": "COMPRESSION_MODEL must be 'bert-base' or 'xlm-roberta-large', got: {value}",
+    "config.invalid_value":             "Invalid config value: {error}",
+    "config.error_prefix":              "\n❌ LLMZip config error:\n   {message}\n",
+}
