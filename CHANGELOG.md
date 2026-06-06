@@ -6,6 +6,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.1.6] — 2026-06-06
+
+### Fixed
+
+- **Syntax Error**: literal newline artifact in `lingua_adapter.py` - `force_tokens=["\n"]` had a raw newline character instead of the escape sequence, causing a `SyntaxError` on startup
+- **Name Error**: missing `from typing import NoReturn` import in `loader.py` causing a `NameError` on startup
+
+---
+
 ## [0.1.5] — 2026-06-06
 
 ### Fixed
