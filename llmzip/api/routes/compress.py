@@ -52,7 +52,7 @@ def compress(
             warning=None,
         )
 
-    result = lingua.compress(req.text, req.ratio)
+    result = lingua.compress(req.text, req.ratio, req.model)
     score = scorer.score(req.text, result.compressed_text)
     savings = calculate_savings(req.text, result.compressed_text, req.model)
     _, accuracy = count_tokens(req.text, req.model)

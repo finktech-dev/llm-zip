@@ -57,7 +57,7 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="llm-zip",
         description="Context compression sidecar for LLM applications.",
-        version="0.1.0",
+        version=importlib.metadata.version("llm-zip"),
         lifespan=lifespan,
     )
 
