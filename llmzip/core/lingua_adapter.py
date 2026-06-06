@@ -60,8 +60,7 @@ class LinguaAdapter:
                 result = self._compressor.compress_prompt(
                     text,
                     rate=ratio,
-                    force_tokens=["
-"],
+                    force_tokens=["\n"],
                 )
             compressed = result["compressed_prompt"]
             compressed_tokens, _ = count_tokens(compressed, target_model)
