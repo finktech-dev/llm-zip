@@ -183,7 +183,6 @@ For CI or Docker deployments, you can override defaults with environment variabl
 | Variable | Description |
 |---|---|
 | `LLMZIP_LANG` | Forces CLI language (`en`, `es`, `pt`, `zh`, `ja`). Overrides system locale. |
-| `MODELS_URL` | Overrides internal DNS for the models container. Defaults to `http://llmzip-models:8001`. |
 
 ---
 

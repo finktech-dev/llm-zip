@@ -40,7 +40,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     lingua.load()
     app.state.lingua = lingua
 
-    scorer = SemanticScorer()
+    scorer = SemanticScorer(models_dir=models_dir)
     scorer.load()
     app.state.scorer = scorer
 

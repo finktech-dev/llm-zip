@@ -16,7 +16,9 @@ class SemanticScorer:
 
     def load(self) -> None:
         logger.info("Loading semantic scorer: %s", MODEL_ID)
-        self._model = SentenceTransformer(MODEL_ID)
+        self._model = SentenceTransformer(
+            MODEL_ID, cache_folder=str(self._models_dir)
+        )
         logger.info("Semantic scorer loaded")
 
     def score(self, original: str, compressed: str) -> float:
@@ -58,3 +60,4 @@ def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     if norm_a == 0 or norm_b == 0:
         return 0.0
     return float(np.dot(a, b) / (norm_a * norm_b))
+) / (norm_a * norm_b))

@@ -40,7 +40,7 @@ class LinguaAdapter:
             model_name=hf_model_id,
             use_llmlingua2=True,
             device_map=self._device,
-            model_config={},
+            model_config={"cache_dir": str(self._models_dir)},
             open_api_config={},
         )
         logger.info("Compression model loaded")
