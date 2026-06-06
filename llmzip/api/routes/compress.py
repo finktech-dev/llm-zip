@@ -28,7 +28,8 @@ def compress(
     lingua: LinguaAdapter = Depends(get_lingua),
     scorer: SemanticScorer = Depends(get_scorer),
 ) -> CompressResponse:
-    original_tokens, _ = count_tokens(req.text, req.model)
+    model = req.model or config.default_model
+    original_tokens, _ = count_tokens(req.text, model)
 
     if original_tokens > config.max_tokens:
         raise HTTPException(
@@ -37,7 +38,7 @@ def compress(
         )
 
     if original_tokens < config.min_tokens_to_compress:
-        tok, acc = count_tokens(req.text, req.model)
+        tok, acc = count_tokens(req.text, model)
         savings = calculate_savings(req.text, req.text, config.default_model)
         return CompressResponse(
             compressed=req.text,
@@ -52,10 +53,10 @@ def compress(
             warning=None,
         )
 
-    result = lingua.compress(req.text, req.ratio, req.model)
+    result = lingua.compress(req.text, req.ratio, model)
     score = scorer.score(req.text, result.compressed_text)
-    savings = calculate_savings(req.text, result.compressed_text, req.model)
-    _, accuracy = count_tokens(req.text, req.model)
+    savings = calculate_savings(req.text, result.compressed_text, model)
+    _, accuracy = count_tokens(req.text, model)
 
     return CompressResponse(
         compressed=result.compressed_text,
@@ -88,7 +89,8 @@ def compress_batch(
 
     def _process(index: int, item) -> BatchResultItem:
         try:
-            original_tokens, accuracy = count_tokens(item.text, item.model)
+            model = item.model or config.default_model
+            original_tokens, accuracy = count_tokens(item.text, model)
 
             if original_tokens > config.max_tokens:
                 return BatchResultItem(
@@ -107,9 +109,9 @@ def compress_batch(
                     reason="skipped_below_threshold",
                 )
 
-            compression = lingua.compress(item.text, item.ratio, item.model)
+            compression = lingua.compress(item.text, item.ratio, model)
             score = scorer.score(item.text, compression.compressed_text)
-            savings = calculate_savings(item.text, compression.compressed_text, item.model)
+            savings = calculate_savings(item.text, compression.compressed_text, model)
 
             return BatchResultItem(
                 index=index,

@@ -101,6 +101,6 @@ def _validate_required(parser: configparser.ConfigParser) -> None:
         )
 
 
-def _fail(message: str) -> None:
+def _fail(message: str) -> NoReturn:
     print(f"\n❌ LLMZip config error:\n   {message}\n", file=sys.stderr)
     sys.exit(1)

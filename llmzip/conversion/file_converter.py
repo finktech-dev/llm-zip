@@ -52,9 +52,10 @@ def convert_bytes(content: bytes, filename: str) -> ConversionResult:
     import tempfile
 
     suffix = Path(filename).suffix.lower()
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp_path = Path(tmp.name)
-        tmp.write(content)
+    tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+    tmp_path = Path(tmp.name)
+    tmp.write(content)
+    tmp.close()
 
     try:
         return convert(tmp_path)

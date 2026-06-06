@@ -45,5 +45,8 @@ def _normalize(raw: dict) -> dict[str, dict[str, float]]:
             "output": float(output_price) * 1_000_000,
         }
 
-    prices["_meta"] = {"note": f"Rates from LiteLLM as of {today}"}  # type: ignore[assignment]
+    prices["_meta"] = {
+        "note": f"Rates from LiteLLM as of {today}",
+        "source": "litellm",
+    }  # type: ignore[assignment]
     return prices

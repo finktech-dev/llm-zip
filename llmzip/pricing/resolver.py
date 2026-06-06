@@ -1,4 +1,5 @@
 import logging
+import threading
 import time
 from datetime import datetime
 
@@ -13,6 +14,7 @@ _cache_ttl: int = 3600
 
 _last_fetch_attempt: float = 0.0
 _FETCH_COOLDOWN: float = 30.0  # seconds between retries if LiteLLM is down
+_fetch_lock = threading.Lock()
 
 
 def configure(cache_ttl: int) -> None:
@@ -35,14 +37,26 @@ def resolve_prices() -> dict[str, dict[str, float]]:
             return _cache
         return _make_fallback()
 
-    _last_fetch_attempt = now
-    fetched = fetch_prices()
+    with _fetch_lock:
+        # double-check if another thread updated it while waiting for lock
+        now = time.monotonic()
+        if _cache and (now - _cache_timestamp) < _cache_ttl:
+            return _cache
+        
+        # also re-check cooldown
+        if (now - _last_fetch_attempt) < _FETCH_COOLDOWN:
+            if _cache:
+                return _cache
+            return _make_fallback()
 
-    if fetched is not None:
-        _cache = fetched
-        _cache_timestamp = now
-        logger.debug("Prices refreshed from LiteLLM")
-        return _cache
+        _last_fetch_attempt = now
+        fetched = fetch_prices()
+
+        if fetched is not None:
+            _cache = fetched
+            _cache_timestamp = now
+            logger.debug("Prices refreshed from LiteLLM")
+            return _cache
 
     # fetch failed — use stale cache if available, else fallback
     if _cache:
@@ -56,6 +70,7 @@ def _make_fallback() -> dict[str, dict[str, float]]:
     today = datetime.utcnow().strftime("%Y-%m-%d")
     fallback_with_meta = dict(FALLBACK_PRICES)
     fallback_with_meta["_meta"] = {  # type: ignore[assignment]
-        "note": f"Rates from llm-zip fallback as of {today} (LiteLLM unavailable)"
+        "note": f"Rates from llm-zip fallback as of {today} (LiteLLM unavailable)",
+        "source": "fallback",
     }
     return fallback_with_meta

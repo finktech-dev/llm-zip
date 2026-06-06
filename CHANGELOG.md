@@ -6,6 +6,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.1.5] — 2026-06-06
+
+### Fixed
+
+- **Model default**: `CompressRequest` and `BatchItem` no longer hardcode `gpt-4o-mini` - model now falls back to `config.default_model` from `.llmzip.config` when not specified in the request
+- **Pricing concurrency**: added `threading.Lock` with double-checked locking to `resolver.py` - prevents simultaneous LiteLLM fetches under concurrent batch load
+- **Pricing source field**: `_meta` in fetcher and resolver now includes an explicit `"source"` field (`"litellm"` or `"fallback"`) instead of inferring it from the note string
+- **NoReturn type**: `_fail()` in `loader.py` now correctly typed as `NoReturn`
+- **Tempfile on Windows**: `convert_bytes()` in `file_converter.py` now closes the tempfile before passing it to MarkItDown, fixing `PermissionError` on Windows
+
+---
+
 ## [0.1.4] — 2026-06-06
 
 ### Fixed

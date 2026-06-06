@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, field_validator
 class CompressRequest(BaseModel):
     text: str = Field(..., min_length=1)
     ratio: float = Field(default=0.5, ge=0.1, le=0.9)
-    model: str = Field(default="gpt-4o-mini")
+    model: str | None = Field(default=None)
 
 
 class CompressResponse(BaseModel):
@@ -23,7 +23,7 @@ class CompressResponse(BaseModel):
 class BatchItem(BaseModel):
     text: str = Field(..., min_length=1)
     ratio: float = Field(default=0.5, ge=0.1, le=0.9)
-    model: str = Field(default="gpt-4o-mini")
+    model: str | None = Field(default=None)
 
 
 class BatchRequest(BaseModel):

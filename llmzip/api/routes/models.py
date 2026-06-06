@@ -20,7 +20,7 @@ def list_models() -> ModelsResponse:
                 model=model,
                 input_per_million_usd=data["input"],
                 output_per_million_usd=data["output"],
-                source="litellm" if "LiteLLM" in note else "fallback",
+                source=meta.get("source", "fallback"),
             )
         )
 
