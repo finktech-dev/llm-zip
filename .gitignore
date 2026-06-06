@@ -32,3 +32,6 @@ models/
 
 # Docker
 *.log
+
+# Scripts
+scaffold.py

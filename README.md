@@ -2,6 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/finktech-dev/llm-zip/releases"><img src="https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge" alt="Version"></a>
+  <a href="https://pypi.org/project/llm-zip/"><img src="https://img.shields.io/pypi/v/llm-zip?style=for-the-badge&logo=pypi&logoColor=white&color=3775A9" alt="PyPI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge" alt="License"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"></a>
