@@ -45,20 +45,21 @@ class LinguaAdapter:
         )
         logger.info("Compression model loaded")
 
-    def compress(self, text: str, ratio: float) -> CompressionResult:
+    def compress(self, text: str, ratio: float, target_model: str) -> CompressionResult:
         if self._compressor is None:
             raise RuntimeError("LinguaAdapter not loaded — call load() first")
 
-        original_tokens = _count_words(text)
+        original_tokens, _ = count_tokens(text, target_model)
 
         try:
-            result = self._compressor.compress_prompt(
-                text,
-                rate=ratio,
-                force_tokens=["\n"],
-            )
+            with self._lock:
+                result = self._compressor.compress_prompt(
+                    text,
+                    rate=ratio,
+                    force_tokens=["\n"],
+                )
             compressed = result["compressed_prompt"]
-            compressed_tokens = _count_words(compressed)
+            compressed_tokens, _ = count_tokens(compressed, target_model)
             actual_ratio = (
                 original_tokens / compressed_tokens if compressed_tokens > 0 else 1.0
             )
@@ -80,6 +81,4 @@ class LinguaAdapter:
             )
 
 
-def _count_words(text: str) -> int:
-    # rough token approximation before tiktoken is applied
-    return len(text.split())
+

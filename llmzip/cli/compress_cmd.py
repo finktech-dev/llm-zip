@@ -58,6 +58,11 @@ def _maybe_convert(text: str, source: Path | None, config) -> str:
     result = convert(source)
     if result.warning:
         typer.echo(t("compress.warning.generic", warning=result.warning), err=True)
+    
+    if not result.text or len(result.text.strip()) < 10:
+        typer.echo("File conversion produced no extractable text.", err=True)
+        raise typer.Exit(code=2)
+        
     return result.text
 
 
@@ -118,7 +123,7 @@ def compress(
         _write_output(text, output)
         raise typer.Exit(code=0)
 
-    result = lingua.compress(text, ratio)
+    result = lingua.compress(text, ratio, model)
     score = scorer.score(text, result.compressed_text)
     savings = calculate_savings(text, result.compressed_text, model)
 

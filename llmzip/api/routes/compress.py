@@ -107,7 +107,7 @@ def compress_batch(
                     reason="skipped_below_threshold",
                 )
 
-            compression = lingua.compress(item.text, item.ratio)
+            compression = lingua.compress(item.text, item.ratio, item.model)
             score = scorer.score(item.text, compression.compressed_text)
             savings = calculate_savings(item.text, compression.compressed_text, item.model)
 

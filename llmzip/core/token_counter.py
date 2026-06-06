@@ -8,13 +8,14 @@ _CHARS_PER_TOKEN: dict[str, float] = {
     "default": 4.0,
 }
 
-# tiktoken encodings by model family
-_OPENAI_ENCODINGS: dict[str, str] = {
-    "gpt-5": "o200k_base",
-    "gpt-4": "o200k_base",
-    "o1": "o200k_base",
-    "o3": "o200k_base",
-}
+# tiktoken encodings by model family (ordered most to least specific)
+_OPENAI_ENCODINGS: list[tuple[str, str]] = [
+    ("gpt-4o", "o200k_base"),
+    ("gpt-5", "o200k_base"),
+    ("gpt-4", "o200k_base"),
+    ("o1", "o200k_base"),
+    ("o3", "o200k_base"),
+]
 
 
 def count_tokens(text: str, model: str) -> tuple[int, str]:
@@ -24,8 +25,8 @@ def count_tokens(text: str, model: str) -> tuple[int, str]:
     """
     model_lower = model.lower()
 
-    for prefix, encoding_name in _OPENAI_ENCODINGS.items():
-        if model_lower.startswith(prefix):
+    for substring, encoding_name in _OPENAI_ENCODINGS:
+        if substring in model_lower:
             return _count_with_tiktoken(text, encoding_name), "exact"
 
     for provider, ratio in _CHARS_PER_TOKEN.items():

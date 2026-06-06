@@ -1,0 +1,12 @@
+feat: initial release of llm-zip v0.1.0
+
+- HTTP sidecar for LLM context compression via LLMLingua-2
+- Single text, batch, and file (PDF, DOCX, XLSX, PPTX) endpoints
+- Live model pricing via LiteLLM with hardcoded fallback
+- Semantic preservation scoring via sentence-transformers
+- Exact token counting via tiktoken (OpenAI); heuristic for others
+- CLI: compress, prices, download-models (Typer + Rich)
+- i18n: English, Spanish, Portuguese, Chinese, Japanese
+- Two-container Docker architecture with persistent model volume
+- INI-style config with startup validation
+- MIT open-source release

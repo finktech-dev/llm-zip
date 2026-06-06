@@ -20,11 +20,13 @@ router = APIRouter(prefix="/v1")
 async def compress_file(
     file: UploadFile,
     ratio: float = 0.5,
-    model: str = "gpt-4o-mini",
+    model: str | None = None,
     config: AppConfig = Depends(get_config),
     lingua: LinguaAdapter = Depends(get_lingua),
     scorer: SemanticScorer = Depends(get_scorer),
 ) -> CompressResponse:
+    model = model or config.default_model
+
     if not config.file_conversion_enabled:
         raise HTTPException(
             status_code=501,
@@ -56,10 +58,10 @@ async def compress_file(
     finally:
         tmp_path.unlink(missing_ok=True)
 
-    if not conversion.text:
+    if not conversion.text or len(conversion.text.strip()) < 10:
         raise HTTPException(
             status_code=422,
-            detail="File produced no extractable text.",
+            detail="File conversion produced no extractable text.",
         )
 
     text = conversion.text
@@ -86,7 +88,7 @@ async def compress_file(
             warning=conversion.warning,
         )
 
-    result = lingua.compress(text, ratio)
+    result = lingua.compress(text, ratio, model)
     score = scorer.score(text, result.compressed_text)
     savings = calculate_savings(text, result.compressed_text, model)
 
@@ -101,4 +103,6 @@ async def compress_file(
         pricing_note=savings.pricing_note,
         skipped=False,
         warning=result.warning or conversion.warning,
+    )
+sion.warning,
     )
