@@ -6,6 +6,26 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.1.4] — 2026-06-06
+
+### Fixed
+
+- **Threading**: `threading.Lock` and `count_tokens` import were missing from `lingua_adapter.py` — batch compression under concurrency would crash at runtime
+- **Model cache**: `SemanticScorer` now accepts and uses `models_dir`, ensuring the CLI and API both download the scorer model to the same volume
+- **Corrupt code**: `compress_file.py` had corrupted trailing code from a previous patch — cleaned up
+- **Dynamic version**: `importlib.metadata` import was missing from `app.py` despite the dynamic version call being present
+- **Tempfile**: `NamedTemporaryFile` fix from v0.1.1 was not present in the built wheel — reapplied
+---
+
+## [0.1.3] — 2026-06-06
+
+### Fixed
+
+- **Critical**: `POST /v1/compress` was calling `lingua.compress()` without the `target_model` argument, causing a `TypeError` on every request
+- **Dynamic version**: API version in Swagger UI was hardcoded as `0.1.0`; now reads dynamically from package metadata
+
+---
+
 ## [0.1.2] — 2026-06-06
 
 ### Fixed

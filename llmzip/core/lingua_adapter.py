@@ -1,8 +1,11 @@
 import logging
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 
 from llmlingua import PromptCompressor
+
+from llmzip.core.token_counter import count_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +30,7 @@ class LinguaAdapter:
         self._models_dir = models_dir
         self._device = device
         self._compressor: PromptCompressor | None = None
+        self._lock = threading.Lock()
 
     def load(self) -> None:
         hf_model_id = SUPPORTED_MODELS.get(self._model_name)
@@ -56,7 +60,8 @@ class LinguaAdapter:
                 result = self._compressor.compress_prompt(
                     text,
                     rate=ratio,
-                    force_tokens=["\n"],
+                    force_tokens=["
+"],
                 )
             compressed = result["compressed_prompt"]
             compressed_tokens, _ = count_tokens(compressed, target_model)
@@ -70,7 +75,6 @@ class LinguaAdapter:
                 compression_ratio=round(actual_ratio, 2),
             )
         except Exception as exc:
-            # return original with warning rather than failing the request
             logger.warning("Compression failed: %s", exc)
             return CompressionResult(
                 compressed_text=text,
@@ -79,6 +83,3 @@ class LinguaAdapter:
                 compression_ratio=1.0,
                 warning="compression_failed",
             )
-
-
-

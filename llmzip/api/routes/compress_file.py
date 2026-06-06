@@ -49,7 +49,9 @@ async def compress_file(
     if not content:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
-    tmp_path = Path(tempfile.mktemp(suffix=suffix))
+    tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+    tmp.close()
+    tmp_path = Path(tmp.name)
     try:
         tmp_path.write_bytes(content)
         conversion = convert(tmp_path)
@@ -103,6 +105,4 @@ async def compress_file(
         pricing_note=savings.pricing_note,
         skipped=False,
         warning=result.warning or conversion.warning,
-    )
-sion.warning,
     )

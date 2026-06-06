@@ -25,12 +25,13 @@ _FEATURED_MODELS = [
 
 
 def _load_models(config) -> tuple[LinguaAdapter, SemanticScorer]:
+    models_dir = Path("models")
     lingua = LinguaAdapter(
         model_name=config.compression_model,
-        models_dir=Path("models"),
+        models_dir=models_dir,
     )
     lingua.load()
-    scorer = SemanticScorer()
+    scorer = SemanticScorer(models_dir=models_dir)
     scorer.load()
     return lingua, scorer
 

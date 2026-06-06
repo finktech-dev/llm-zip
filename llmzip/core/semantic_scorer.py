@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -11,8 +12,9 @@ CHUNK_OVERLAP = 20
 
 
 class SemanticScorer:
-    def __init__(self) -> None:
+    def __init__(self, models_dir: Path | None = None) -> None:
         self._model: SentenceTransformer | None = None
+        self._models_dir = models_dir or Path("models")
 
     def load(self) -> None:
         logger.info("Loading semantic scorer: %s", MODEL_ID)
@@ -60,4 +62,3 @@ def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     if norm_a == 0 or norm_b == 0:
         return 0.0
     return float(np.dot(a, b) / (norm_a * norm_b))
-) / (norm_a * norm_b))
