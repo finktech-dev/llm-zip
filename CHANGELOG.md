@@ -6,6 +6,30 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.1.2] — 2026-06-06
+
+### Fixed
+
+- **Docker**: removed redundant `llmzip-models` service — single `llmzip-api` container now mounts the models volume directly
+- **Model cache**: `LinguaAdapter` passes `cache_dir` to `PromptCompressor` and `SemanticScorer` passes `cache_folder` to `SentenceTransformer`, forcing downloads to `/app/models` instead of the global HuggingFace cache — models persist across restarts without re-downloading
+- **Config filename**: renamed `llmzip.config.example` to `.llmzip.config.example` to match the filename the code actually expects
+
+---
+
+## [0.1.1] — 2026-06-06
+
+### Fixed
+
+- **Token consistency**: `LinguaAdapter` now uses `count_tokens()` (tiktoken/char-ratio) instead of word-count approximation — `compression_ratio` and `estimated_savings` are now calculated from the same metric
+- **Thread safety**: added `threading.Lock` around `compress_prompt()` to prevent race conditions under concurrent batch requests
+- **Pricing resilience**: `resolver.py` tracks failed fetch attempts with a 30s cooldown, preventing request stampedes when LiteLLM is unavailable; stale cache is served before falling back to hardcoded prices
+- **Secure tempfile**: replaced deprecated `mktemp()` with `NamedTemporaryFile` in `POST /v1/compress/file`
+- **Config consistency**: `POST /v1/compress/file` now falls back to `config.default_model` when no model is specified, instead of hardcoding `gpt-4o-mini`
+- **CLI parity**: `_maybe_convert` in the CLI now validates that file conversion produces extractable text, matching the API behavior
+- **Token matching**: OpenAI model detection uses an ordered list of substrings (most-specific first) instead of a prefix dict, fixing ambiguous matches like `gpt-4o` vs `gpt-4`
+
+---
+
 ## [0.1.0] — 2026-06-04
 
 Initial release.
@@ -23,7 +47,7 @@ Initial release.
 - Live pricing from LiteLLM with fallback to hardcoded values
 - `.llmzip.config` — INI config validated at startup, service won't start with missing values
 - `.llmzipignore` / `.llmzipignore.local` — ignore rules for texts and file patterns
-- Docker — two containers with persistent model volume
+- Docker — single container with persistent model volume
 - `MIN_TOKENS_TO_COMPRESS` threshold — texts below it returned as-is with `skipped: true`
 - `FILE_CONVERSION` feature flag
 - Optional rate limiting, off by default
