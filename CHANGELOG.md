@@ -6,6 +6,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.1.8] — 2026-06-06
+
+### Fixed
+
+- **Concurrency**: Fixed race condition in `resolver.py`: fetch now runs outside the lock, preventing concurrent HTTP requests to LiteLLM.
+- **System**: Fixed `health.py` ready endpoint returning incorrect status under multi-worker uvicorn deployments.
+
+---
+
 ## [0.1.7] — 2026-06-06
 
 ### Fixed

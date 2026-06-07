@@ -27,36 +27,39 @@ def resolve_prices() -> dict[str, dict[str, float]]:
 
     now = time.monotonic()
 
-    # valid cache — return directly
+    # valid cache — return directly without locking
     if _cache and (now - _cache_timestamp) < _cache_ttl:
         return _cache
 
-    # cooldown active — don't retry yet, return stale cache or fallback
+    # cooldown active or fetch in progress
     if (now - _last_fetch_attempt) < _FETCH_COOLDOWN:
-        if _cache:
-            return _cache
-        return _make_fallback()
+        return _cache if _cache else _make_fallback()
 
+    fetch_needed = False
     with _fetch_lock:
-        # double-check if another thread updated it while waiting for lock
         now = time.monotonic()
+        # double-check if another thread updated it while waiting
         if _cache and (now - _cache_timestamp) < _cache_ttl:
             return _cache
         
-        # also re-check cooldown
+        # double-check cooldown (another thread might have claimed the fetch)
         if (now - _last_fetch_attempt) < _FETCH_COOLDOWN:
-            if _cache:
-                return _cache
-            return _make_fallback()
+            return _cache if _cache else _make_fallback()
 
+        # claim the fetch attempt and release the lock immediately
         _last_fetch_attempt = now
-        fetched = fetch_prices()
+        fetch_needed = True
 
+    if fetch_needed:
+        # fetch outside the lock to prevent blocking other requests
+        fetched = fetch_prices()
+        
         if fetched is not None:
-            _cache = fetched
-            _cache_timestamp = now
-            logger.debug("Prices refreshed from LiteLLM")
-            return _cache
+            with _fetch_lock:
+                _cache = fetched
+                _cache_timestamp = time.monotonic()
+                logger.debug("Prices refreshed from LiteLLM")
+                return _cache
 
     # fetch failed — use stale cache if available, else fallback
     if _cache:

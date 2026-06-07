@@ -1,15 +1,16 @@
+from pathlib import Path
 from fastapi import APIRouter
 from llmzip.api.schemas import HealthResponse, ReadyResponse
 
 router = APIRouter()
-
-# set by app.py lifespan once models are loaded
-_models_loaded = False
+_READY_MARKER = Path("models/.ready")
 
 
 def set_models_loaded(value: bool) -> None:
-    global _models_loaded
-    _models_loaded = value
+    if value:
+        _READY_MARKER.touch()
+    else:
+        _READY_MARKER.unlink(missing_ok=True)
 
 
 @router.get("/health", response_model=HealthResponse, tags=["system"])
@@ -19,4 +20,5 @@ def health() -> HealthResponse:
 
 @router.get("/ready", response_model=ReadyResponse, tags=["system"])
 def ready() -> ReadyResponse:
-    return ReadyResponse(status="ok" if _models_loaded else "loading", models_loaded=_models_loaded)
+    loaded = _READY_MARKER.exists()
+    return ReadyResponse(status="ok" if loaded else "loading", models_loaded=loaded)
