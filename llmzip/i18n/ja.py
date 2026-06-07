@@ -3,6 +3,8 @@ STRINGS: dict[str, str] = {
     "compress.error.no_input":          "エラー：ファイルを指定するか、stdinからテキストを入力してください。",
     "compress.warning.conversion_disabled": "警告：設定でファイル変換が無効になっています — プレーンテキストとして処理します。",
     "compress.warning.generic":         "警告：{warning}",
+    "compress.warning.compression_failed": "圧縮に失敗しました — 元のテキストを返します。",
+    "compress.warning.file_empty_text": "ファイル変換で抽出可能なテキストが得られませんでした。",
     "compress.error.above_max_tokens":  "エラー：テキストが MAX_TOKENS（{max_tokens}）を超えています。約 {tokens} トークンが検出されました。",
     "compress.skipped":                 "⚠  スキップ — MIN_TOKENS_TO_COMPRESS（{threshold}）未満のため、元のテキストを返します。",
     "compress.written":                 "✓ {path} に書き込みました",

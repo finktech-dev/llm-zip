@@ -12,16 +12,10 @@ from llmzip.core.lingua_adapter import LinguaAdapter
 from llmzip.core.savings_calculator import calculate_savings
 from llmzip.core.semantic_scorer import SemanticScorer
 from llmzip.core.token_counter import count_tokens
+from llmzip.core.featured_models import FEATURED_MODELS
 from llmzip.pricing.fallback import FALLBACK_PRICES
 
 logger = logging.getLogger(__name__)
-
-_FEATURED_MODELS = [
-    "gpt-4o-mini", "gpt-5.4-mini",
-    "claude-haiku-4-5", "claude-sonnet-4-6",
-    "gemini-2.5-flash-lite", "gemini-2.5-flash",
-    "deepseek-v4-flash",
-]
 
 
 def _load_models(config) -> tuple[LinguaAdapter, SemanticScorer]:
@@ -220,7 +214,7 @@ def _fill_interactively(
 
     # model
     if model is None:
-        model_choices = _FEATURED_MODELS + [t("interactive.model_other")]
+        model_choices = FEATURED_MODELS + [t("interactive.model_other")]
         model_choice = questionary.select(
             t("interactive.select_model"), choices=model_choices
         ).ask()

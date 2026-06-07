@@ -3,6 +3,8 @@ STRINGS: dict[str, str] = {
     "compress.error.no_input":          "Erro: forneça um arquivo ou envie texto via stdin.",
     "compress.warning.conversion_disabled": "Aviso: conversão de arquivos desativada na config — tratando como texto simples.",
     "compress.warning.generic":         "Aviso: {warning}",
+    "compress.warning.compression_failed": "A compressão falhou — retornando o texto original.",
+    "compress.warning.file_empty_text": "A conversão do arquivo não produziu texto extraível.",
     "compress.error.above_max_tokens":  "Erro: o texto excede MAX_TOKENS ({max_tokens}). Detectados ~{tokens} tokens.",
     "compress.skipped":                 "⚠  Ignorado — abaixo de MIN_TOKENS_TO_COMPRESS ({threshold}). Retornando original.",
     "compress.written":                 "✓ Salvo em {path}",

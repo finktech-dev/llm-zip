@@ -14,6 +14,8 @@ SUPPORTED_MODELS = {
     "xlm-roberta-large": "microsoft/llmlingua-2-xlm-roberta-large-meetingbank",
 }
 
+_WARNING_COMPRESSION_FAILED = "compress.warning.compression_failed"
+
 
 @dataclass
 class CompressionResult:
@@ -80,5 +82,5 @@ class LinguaAdapter:
                 original_tokens=original_tokens,
                 compressed_tokens=original_tokens,
                 compression_ratio=1.0,
-                warning="compression_failed",
+                warning=_WARNING_COMPRESSION_FAILED,
             )

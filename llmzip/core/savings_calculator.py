@@ -1,16 +1,8 @@
 from dataclasses import dataclass
 
 from llmzip.core.token_counter import count_tokens
+from llmzip.core.featured_models import FEATURED_MODELS
 from llmzip.pricing.resolver import resolve_prices
-
-# models shown in every response regardless of DEFAULT_MODEL
-_FEATURED_MODELS = [
-    "gpt-4o-mini",
-    "gpt-5.4-mini",
-    "claude-haiku-4-5",
-    "gemini-2.5-flash-lite",
-    "deepseek-v4-flash",
-]
 
 
 @dataclass
@@ -57,7 +49,7 @@ def calculate_savings(
 
 
 def _build_model_list(default_model: str) -> list[str]:
-    models = list(_FEATURED_MODELS)
+    models = list(FEATURED_MODELS)
     if default_model not in models:
         models.insert(0, default_model)
     return models
