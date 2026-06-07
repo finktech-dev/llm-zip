@@ -6,6 +6,15 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.1.9] — 2026-06-06
+
+### Added
+
+- **Smart Chunking**: New paragraph-based chunking logic for long texts. Documents are now split into segments (default: 400 tokens) to ensure optimal BERT performance and prevent context window errors.
+- **Benchmarks**: Added real-world internal test results to README, including academic papers and technical manuals.
+
+---
+
 ## [0.1.8] — 2026-06-06
 
 ### Fixed
