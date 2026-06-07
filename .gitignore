@@ -35,3 +35,6 @@ models/
 
 # Scripts
 scaffold.py
+
+# Internal Docs
+docs-me/

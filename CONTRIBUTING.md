@@ -24,7 +24,7 @@ If you run llm-zip in production and have real numbers, that's exactly what this
 ## Setup
 
 ```bash
-git clone https://github.com/FinkTech/llm-zip.git
+git clone https://github.com/finktech-dev/llm-zip.git
 cd llm-zip
 python -m venv .venv
 source .venv/bin/activate

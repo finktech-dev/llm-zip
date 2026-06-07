@@ -6,6 +6,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.1.7] — 2026-06-06
+
+### Fixed
+
+- **Pricing**: Fixed incorrect fallback prices for GPT-5.5, GPT-5.4 family, Gemini 3.x, and DeepSeek V4 (verified 2026-06-06)
+- **Models**: Added missing models to fallback: `gpt-5.4`, `gpt-4.1-nano`, `claude-opus-4-6`
+- **Performance**: Fixed redundant `count_tokens` call in `/v1/compress` route
+- **i18n**: Compression failure warnings now route through i18n instead of returning raw strings
+- **Refactor**: Centralized `FEATURED_MODELS` into `core/featured_models.py`, removing duplicate definitions in `savings_calculator.py` and `compress_cmd.py`
+
+---
+
 ## [0.1.6] — 2026-06-06
 
 ### Fixed
