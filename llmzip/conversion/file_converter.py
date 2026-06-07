@@ -4,6 +4,8 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+_WARNING_FILE_EMPTY_TEXT = "compress.warning.file_empty_text"
+
 SUPPORTED_EXTENSIONS = {
     ".pdf", ".docx", ".doc", ".xlsx", ".xls",
     ".pptx", ".ppt", ".csv", ".html", ".htm",

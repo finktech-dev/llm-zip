@@ -35,6 +35,7 @@ models/
 
 # Scripts
 scaffold.py
+commit_msg.txt
 
 # Internal Docs
 docs-me/

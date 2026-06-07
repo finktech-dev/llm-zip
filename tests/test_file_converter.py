@@ -55,7 +55,7 @@ def test_convert_returns_warning_on_empty_text(mock_check, tmp_path) -> None:
     with patch("llmzip.conversion.file_converter.MarkItDown", return_value=mock_md_instance):
         result = convert(fake_file)
 
-    assert result.warning == "file_produced_empty_text"
+    assert result.warning == "compress.warning.file_empty_text"
 
 
 def test_markitdown_unavailable_raises_runtime_error() -> None:
