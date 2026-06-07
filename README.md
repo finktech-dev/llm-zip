@@ -247,7 +247,7 @@ The following results were obtained by running llm-zip against real documents du
 - **Extractive compression** — tokens are removed, not rewritten. Some nuance may be lost at aggressive ratios (above 0.7).
 - **Pricing accuracy** — savings are *estimates*. Non-OpenAI tokenizers use a character-ratio heuristic with a ±10% margin of error.
 - **Format loss** — file conversion extracts plain text only. Layout, tables, and complex formatting are not preserved.
-- **Production testing** — this is v0.1.0. Concurrent batch processing should be monitored closely in high-throughput environments.
+- **Production testing** — this is v0.1.9. Concurrent batch processing should be monitored closely in high-throughput environments.
 
 ---
 
