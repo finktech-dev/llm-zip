@@ -21,6 +21,7 @@ class AppConfig:
     default_model: str
     max_batch_size: int
     batch_workers: int
+    chunk_size: int
     compression_model: str
     pricing_cache_ttl: int
     rate_limit_enabled: bool
@@ -66,6 +67,7 @@ def load() -> AppConfig:
             default_model=parser["compression"]["DEFAULT_MODEL"],
             max_batch_size=int(parser["compression"].get("MAX_BATCH_SIZE", "25")),
             batch_workers=int(parser["compression"].get("BATCH_WORKERS", "4")),
+            chunk_size=int(parser["compression"].get("CHUNK_SIZE", "400")),
             compression_model=compression_model,
             pricing_cache_ttl=int(parser["pricing"].get("CACHE_TTL", "3600")),
             rate_limit_enabled=parser["rate_limit"].get("ENABLED", "false").lower()

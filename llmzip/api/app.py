@@ -37,6 +37,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     lingua = LinguaAdapter(
         model_name=config.compression_model,
         models_dir=models_dir,
+        chunk_size=config.chunk_size,
     )
     lingua.load()
     app.state.lingua = lingua

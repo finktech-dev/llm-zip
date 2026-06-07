@@ -23,6 +23,7 @@ def _load_models(config) -> tuple[LinguaAdapter, SemanticScorer]:
     lingua = LinguaAdapter(
         model_name=config.compression_model,
         models_dir=models_dir,
+        chunk_size=config.chunk_size,
     )
     lingua.load()
     scorer = SemanticScorer(models_dir=models_dir)

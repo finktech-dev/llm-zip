@@ -1,7 +1,7 @@
 # 🗜️ llm-zip
 
 <p align="center">
-  <a href="https://github.com/finktech-dev/llm-zip/releases"><img src="https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge" alt="Version"></a>
+  <a href="https://github.com/finktech-dev/llm-zip/releases"><img src="https://img.shields.io/badge/version-0.1.8-blue?style=for-the-badge" alt="Version"></a>
   <a href="https://pypi.org/project/llm-zip/"><img src="https://img.shields.io/pypi/v/llm-zip?style=for-the-badge&logo=pypi&logoColor=white&color=3775A9" alt="PyPI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge" alt="License"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
@@ -168,6 +168,7 @@ Supported formats: PDF, Word (`.docx`), Excel (`.xlsx`), PowerPoint (`.pptx`), a
 | | Feature | Detail |
 |---|---|---|
 | 📄 | **Text and files** | Compress plain text or upload PDFs, Word, Excel, and PowerPoint directly |
+| 🪓 | **Smart Chunking** | Handle documents of any length by splitting text into chunks based on paragraphs |
 | 🖥️ | **CPU-Friendly** | Default model requires only ~700MB of RAM — no GPU needed |
 | 🌐 | **Global i18n** | CLI in English, Spanish, Portuguese, Chinese, and Japanese |
 | ⚙️ | **Configurable thresholds** | Define when llm-zip should and shouldn't intervene (`MIN_TOKENS_TO_COMPRESS`) |
@@ -194,15 +195,35 @@ llm-zip is powered by Microsoft's LLMLingua-2. According to their [research pape
 - **Quality retention:** **90–98% Exact Match performance** vs. uncompressed prompts
 - **Latency reduction:** end-to-end latency improvement of **1.6× to 2.9×** (task-agnostic, no prompt needed to start)
 
+---
+
+### 🧪 Internal Test Results
+
+The following results were obtained by running llm-zip against real documents during development. They are not synthetic benchmarks — they reflect actual compression output on representative material.
+
+> **How savings are calculated:** `tokens_saved × input_price_per_token`, using live prices fetched from LiteLLM at run time. For OpenAI models, tokenization is exact (tiktoken). For Anthropic, Google and DeepSeek, a character-ratio heuristic is used (±10% margin). Only **input token savings** are counted — output token reduction, which also occurs in many workflows, is not included. The figures below are **approximate lower-bound estimates**: real savings may be higher or lower depending on your actual usage pattern and the model you call.
+
+| Document                             | Lang | Ratio | Tokens In | Tokens Out | Compression | Preservation | Est. Saving¹ |
+| :----------------------------------- | :--: | :---: | --------: | ---------: | :---------: | :----------: | :----------- |
+| [A Survey of LLMs][survey] (100+ p.) |  EN  |  def  |   296,726 |    172,684 |  **1.72×**  |    0.9564    | ~$0.398      |
+| [Attention Is All You Need][aiayn]   |  EN  |  0.5  |    11,993 |      6,240 |  **1.92×**  |    0.9087    | ~$0.016      |
+| Generic customs manual² (Technical)  |  ES  |  0.9  |    11,996 |      4,765 |  **2.52×**  |    0.8942    | ~$0.018      |
+
+[survey]: https://arxiv.org/abs/2303.18223
+[aiayn]: https://arxiv.org/abs/1706.03762
+
+> ¹ Estimated saving for `claude-sonnet-4-6` input tokens only. See methodology note above.
+> ² Synthetic test dataset modeled after Argentine customs documentation (Código Aduanero, NCM, ARCA/DGA). Not a real operational document.
+
 <details>
 <summary>📋 Hardware benchmarks (click to expand)</summary>
 
 > **Community-maintained — no verified numbers yet.**
-> If you run llm-zip on real hardware, please submit your results via PR. Include: hardware, model (`bert-base` or `xlm-roberta-large`), input token count, and time to compress.
+> If you run llm-zip on real hardware, please submit your results via PR.
 
-| Hardware | Model | Input Tokens | Time to Compress |
-| :------- | :---- | :----------- | :--------------- |
-| —        | —     | —            | —                |
+| Hardware | Model | Tokens | Time |
+| :------- | :---: | :----: | ---: |
+| —        |   —   |   —    | —    |
 
 </details>
 
@@ -210,11 +231,11 @@ llm-zip is powered by Microsoft's LLMLingua-2. According to their [research pape
 <summary>📋 Use-case benchmarks (click to expand)</summary>
 
 > **Community-maintained — no verified numbers yet.**
-> If you use llm-zip in a real workload, please submit your results via PR. Include: use case, language, token counts, ratio, preservation score, and model used for savings estimation.
+> If you use llm-zip in a real workload, please submit your results via PR.
 
-| Use case | Tokens in | Tokens out | Ratio | Preservation | Est. saving |
-| :------- | :-------- | :--------- | :---- | :----------- | :---------- |
-| —        | —         | —          | —     | —            | —           |
+| Use case | Tokens In | Ratio | Preservation | Est. Saving |
+| :------- | :-------: | :---: | :----------: | :---------- |
+| —        |     —     |   —   |      —       | —           |
 
 </details>
 

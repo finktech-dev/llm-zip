@@ -18,6 +18,9 @@ BATCH_WORKERS=4
 ; Compression model — bert-base uses ~4GB RAM, xlm-roberta-large uses ~8GB
 ; Options: bert-base | xlm-roberta-large
 COMPRESSION_MODEL=bert-base
+; Smart chunking size in tokens. Long texts will be split by paragraphs
+; into chunks of this size for better BERT performance.
+CHUNK_SIZE=400
 
 [pricing]
 ; Seconds before re-fetching LiteLLM prices (0 = always fetch)
