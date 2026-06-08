@@ -1,7 +1,7 @@
 import logging
-from datetime import datetime
-
+from datetime import datetime, timezone
 import httpx
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ def fetch_prices() -> dict[str, dict[str, float]] | None:
 
 def _normalize(raw: dict) -> dict[str, dict[str, float]]:
     prices: dict[str, dict[str, float]] = {}
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     for model, data in raw.items():
         if not isinstance(data, dict):

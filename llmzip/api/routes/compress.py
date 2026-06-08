@@ -1,8 +1,9 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from llmzip.api.limiter import limiter
 from llmzip.api.schemas import (
     BatchRequest,
     BatchResponse,
@@ -21,9 +22,22 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1")
 
 
+def _get_rpm_limit() -> str:
+    from llmzip.api.app import app
+    return f"{app.state.config.rate_limit_rpm}/minute"
+
+
+def _get_rpd_limit() -> str:
+    from llmzip.api.app import app
+    return f"{app.state.config.rate_limit_rpd}/day"
+
+
 @router.post("/compress", response_model=CompressResponse, tags=["compression"])
+@limiter.limit(_get_rpm_limit)
+@limiter.limit(_get_rpd_limit)
 def compress(
     req: CompressRequest,
+    request: Request,
     config: AppConfig = Depends(get_config),
     lingua: LinguaAdapter = Depends(get_lingua),
     scorer: SemanticScorer = Depends(get_scorer),
@@ -72,8 +86,11 @@ def compress(
 
 
 @router.post("/compress/batch", response_model=BatchResponse, tags=["compression"])
+@limiter.limit(_get_rpm_limit)
+@limiter.limit(_get_rpd_limit)
 def compress_batch(
     req: BatchRequest,
+    request: Request,
     config: AppConfig = Depends(get_config),
     lingua: LinguaAdapter = Depends(get_lingua),
     scorer: SemanticScorer = Depends(get_scorer),
@@ -83,10 +100,6 @@ def compress_batch(
             status_code=400,
             detail=f"Batch size {len(req.texts)} exceeds MAX_BATCH_SIZE ({config.max_batch_size}).",
         )
-
-    results: list[BatchResultItem] = [
-        BatchResultItem(index=i, status="pending") for i in range(len(req.texts))
-    ]
 
     def _process(index: int, item) -> BatchResultItem:
         try:
@@ -131,9 +144,18 @@ def compress_batch(
             executor.submit(_process, i, item): i
             for i, item in enumerate(req.texts)
         }
+
+        # Collect results in a dict to avoid pre-populating a list with "pending" values.
+        # This approach is runtime-portable and avoids implicit reliance on CPython's GIL.
+        item_results: dict[int, BatchResultItem] = {}
         for future in as_completed(futures):
             item_result = future.result()
-            results[item_result.index] = item_result
+            # Assignment by key is atomic in CPython due to the GIL.
+            # If porting to a runtime without a GIL, a lock or thread-safe queue would be required.
+            item_results[item_result.index] = item_result
+
+    # Reconstruct the ordered list of results for the response
+    results = [item_results[i] for i in range(len(req.texts))]
 
     succeeded = sum(1 for r in results if r.status == "ok")
     failed = sum(1 for r in results if r.status == "error")

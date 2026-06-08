@@ -3,7 +3,7 @@ from pathlib import Path
 from typer.testing import CliRunner
 from unittest.mock import MagicMock, patch
 
-from llmzip.cli.compress_cmd import app
+from llmzip.cli.main import app
 from llmzip.core.lingua_adapter import CompressionResult
 from llmzip.core.savings_calculator import SavingsResult
 

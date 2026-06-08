@@ -2,8 +2,9 @@ import logging
 import tempfile
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, Request
 
+from llmzip.api.limiter import limiter
 from llmzip.api.dependencies import get_config, get_lingua, get_scorer
 from llmzip.api.schemas import CompressResponse
 from llmzip.config.loader import AppConfig
@@ -16,9 +17,22 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1")
 
 
+def _get_rpm_limit() -> str:
+    from llmzip.api.app import app
+    return f"{app.state.config.rate_limit_rpm}/minute"
+
+
+def _get_rpd_limit() -> str:
+    from llmzip.api.app import app
+    return f"{app.state.config.rate_limit_rpd}/day"
+
+
 @router.post("/compress/file", response_model=CompressResponse, tags=["compression"])
+@limiter.limit(_get_rpm_limit)
+@limiter.limit(_get_rpd_limit)
 async def compress_file(
     file: UploadFile,
+    request: Request,
     ratio: float = 0.5,
     model: str | None = None,
     config: AppConfig = Depends(get_config),
@@ -36,6 +50,7 @@ async def compress_file(
     if not (0.1 <= ratio <= 0.9):
         raise HTTPException(status_code=400, detail="ratio must be between 0.1 and 0.9")
 
+    # Lazy import: avoids loading markitdown at startup when FILE_CONVERSION is disabled.
     from llmzip.conversion.file_converter import SUPPORTED_EXTENSIONS, convert
 
     suffix = Path(file.filename or "").suffix.lower()

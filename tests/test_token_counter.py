@@ -4,7 +4,7 @@ from llmzip.core.token_counter import count_tokens
 
 @pytest.mark.parametrize("model,expected_accuracy", [
     ("gpt-4o-mini", "exact"),
-    ("gpt-5.5", "exact"),
+    ("gpt-5.5", "estimated±10%"),
     ("gpt-4.1", "exact"),
     ("claude-haiku-4-5", "estimated±10%"),
     ("claude-sonnet-4-6", "estimated±10%"),

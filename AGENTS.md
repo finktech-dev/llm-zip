@@ -1,116 +1,138 @@
 # AGENTS.md
 
-Context and rules for AI agents working on llm-zip.
+Instructions for AI coding agents working on llm-zip.
 Read this before touching any file.
 
 ---
 
-## What this project is
+## Commands
 
-llm-zip is a self-hosted context compression sidecar for LLM applications.
-It compresses text before it reaches an AI API, reducing token costs 3–5×.
-It never calls any AI API. It never handles API keys. It only compresses.
+```bash
+# Install (dev)
+pip install -e ".[dev]"
 
-It started as an internal tool to reduce costs in private RAG systems.
-Savings estimates for some models are based on published pricing and approximations —
-not internal production benchmarks. Where this is the case it's marked in the code
-and flagged in CLI output with a warning.
+# Test — all tests use mocks, no models required
+pytest
 
----
+# Lint
+ruff check .
 
-## Stack
+# Type check
+mypy llmzip
 
-- Python 3.10+, FastAPI, Typer, Pydantic v2
-- LLMLingua-2 (compression), sentence-transformers (preservation score)
-- MarkItDown (file conversion), tiktoken (token counting), httpx (HTTP)
+# Run API locally (requires .llmzip.config)
+uvicorn llmzip.api.app:app --reload
+
+# Run models server (split mode)
+uvicorn llmzip.models_server.app:app --port 8001 --reload
+
+# Download models to ./models/
+llmzip download-models
+
+# Docker — monolith
+docker compose up -d
+
+# Docker — split mode
+docker compose -f docker-compose.split.yml up -d
+```
 
 ---
 
 ## Import rules
 
+These are enforced — never cross these boundaries:
+
 ```
-api/ and cli/  →  can import from core/, pricing/, conversion/, config/
-core/          →  cannot import from api/ or cli/
-pricing/       →  cannot import from core/
+api/            →  can import from: core/, pricing/, conversion/, config/
+cli/            →  can import from: core/, pricing/, conversion/, config/
+models_server/  →  can import from: core/, config/
+core/           →  cannot import from: api/, cli/, models_server/
+pricing/        →  cannot import from: core/
 ```
 
-Never create imports that cross these boundaries.
+---
+
+## Non-obvious constraints
+
+**Models load once at startup, never inside a request handler.**
+Both LLMLingua-2 and the sentence-transformer live in `app.state` and are injected via `Depends`. Loading a model inside a handler is a hard error.
+
+**stderr for metrics, stdout for output — always.**
+CLI commands print compressed text to stdout and all metrics/warnings to stderr (`typer.echo(..., err=True)`). Mixing them breaks pipes.
+
+**Tests never load real models.**
+Every test that touches `LinguaAdapter`, `SemanticScorer`, or file conversion uses mocks. Integration tests that require real models are marked `@pytest.mark.integration` and skipped by default.
+
+**`llmzip.core` never calls any external AI API.**
+The project compresses — it never calls OpenAI, Anthropic, Gemini, or any LLM on behalf of the user. Any code that does this gets rejected.
+
+**API Key in config protects llm-zip's own endpoints.**
+`API_KEY` in `[server]` is authentication for the llm-zip HTTP API itself. It has nothing to do with the user's LLM provider keys, which llm-zip never handles, stores, or sees.
+
+**Pricing accuracy is model-specific.**
+tiktoken is exact for OpenAI models. For Claude, Gemini, and DeepSeek, a character-ratio heuristic is used (±10% error). Never claim exact accuracy for non-OpenAI models. Mark `pricing_accuracy` accordingly.
+
+**LLMLingua-2 has a compression floor.**
+The model plateaus around 2–2.5× regardless of the requested ratio on some document types. Do not promise ratios above that. The `compression_ratio` in the response reflects actual output, not the requested ratio.
+
+**`PromptCompressor` is thread-safe on CPU for inference.**
+PyTorch forward passes do not mutate model state. The global lock around `compress_prompt()` was removed in v0.2.0 — do not re-add it.
 
 ---
 
 ## Code rules
 
-### Always
+### Do
 - Strict type annotations on every function — parameters and return types
 - `pydantic.BaseModel` for all request/response schemas
 - `pathlib.Path` instead of string paths
-- `httpx.AsyncClient` for async HTTP, `httpx.get` for sync
-- Raise specific exceptions, never bare `except:`
-- Return early — avoid deep nesting
-- Functions under 40 lines — split if longer
+- `httpx.AsyncClient` for async HTTP, `httpx.Client` for sync
+- Raise specific exceptions — never bare `except:`
+- Return early to avoid deep nesting
 - One responsibility per file
+- Functions under 40 lines — split if longer
 
-### Never
+### Don't
 - `Any` from typing
 - `dict` as a type hint when a Pydantic model should exist
 - `print()` — use the logger
-- Hardcoded paths — use `pathlib.Path` and config values
-- Silent exception swallowing
-- Calls to any external AI API
-- Storing or logging request content
-- Mutable default arguments
 - `time.sleep()` in async context — use `asyncio.sleep()`
-
-### Naming
-- Modules: `snake_case` — Classes: `PascalCase` — Functions/variables: `snake_case`
-- Constants: `UPPER_SNAKE_CASE` — Private functions: `_prefix`
-
-### Comments
-- Rare and intentional — comment the *why*, never the *what*
-- No commented-out code in commits
+- Hardcoded model names or paths — read from config
+- Silent exception swallowing
+- Mutable default arguments
+- Commented-out code in commits
+- f-strings in logger calls — use `%s` formatting
 
 ---
 
-## Models in memory
+## Adding a new endpoint
 
-Both LLMLingua-2 and the sentence-transformer are loaded once at FastAPI startup via `lifespan`.
-They live in `app.state` and are injected via `Depends`.
-Never load a model inside a request handler.
+1. Schema goes in `llmzip/api/schemas.py`
+2. Route goes in `llmzip/api/routes/<name>.py`
+3. Register the router in `llmzip/api/app.py`
+4. Rate limiting uses the `@limiter.limit` decorator from `llmzip/api/limiter.py`
+5. Config is injected via `Depends(get_config)` — never read `.llmzip.config` directly in a route
 
----
+## Adding a new CLI command
 
-## Pricing
+1. Command function goes in `llmzip/cli/<name>_cmd.py`
+2. Register in `llmzip/cli/main.py`
+3. All user-facing strings go through `llmzip/i18n/t()` — no hardcoded English in CLI output
+4. Add the new key to all five language files: `en.py`, `es.py`, `pt.py`, `zh.py`, `ja.py`
 
-Fetched from LiteLLM at startup, cached for `CACHE_TTL` seconds.
-On failure, fall back to `pricing/fallback.py` silently.
-Update `PRICES_LAST_UPDATED` when editing fallback prices.
-If a model's savings estimate is not backed by production benchmarks,
-mark it with a `# unverified` comment in `fallback.py`.
+## Adding a new model to fallback prices
 
----
-
-## Error handling
-
-- API errors: `{"error": "message", "code": "ERROR_CODE"}`
-- HTTP codes: 400 bad input, 413 too large, 422 validation, 500 internal, 501 feature disabled
-- CLI errors: print to stderr, exit code 2
-- Batch: never fail the entire batch for one item failure
+1. Edit `llmzip/pricing/fallback.py`
+2. Update `PRICES_LAST_UPDATED`
+3. Add `# unverified` comment if not confirmed against live billing
 
 ---
 
-## Config
+## Permanent out of scope
 
-`.llmzip.config` is required. The loader validates all values at startup.
-The service must not start with invalid or missing required config.
-Required: `MAX_TOKENS`, `MIN_TOKENS_TO_COMPRESS`, `DEFAULT_RATIO`, `DEFAULT_MODEL`.
-
----
-
-## What is permanently out of scope
-
-- Calling any AI API on behalf of the user
+- Calling any LLM API on behalf of the user
+- Storing, logging, or proxying the user's LLM provider API keys
 - Storing or caching compressed texts
-- User authentication or API keys
 - A database of any kind
 - A web UI or dashboard
 - Cloud-hosted SaaS version

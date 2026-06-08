@@ -4,6 +4,14 @@ MAX_TOKENS=
 ; Below this threshold, text is returned as-is (skipped=true)
 MIN_TOKENS_TO_COMPRESS=500
 PORT=8000
+; Optional API Key for /v1/* endpoints. Format: Bearer <key>
+; Leave empty to disable authentication.
+API_KEY=
+; Deployment mode: monolith (default) or split
+; In split mode, the API delegates inference to llmzip-models at MODELS_URL
+DEPLOY_MODE=monolith
+; URL of the models service (only used when DEPLOY_MODE=split)
+MODELS_URL=http://llmzip-models:8001
 
 [compression]
 ; Target compression ratio — 0.1 (aggressive) to 0.9 (light)
@@ -21,6 +29,10 @@ COMPRESSION_MODEL=bert-base
 ; Smart chunking size in tokens. Long texts will be split by paragraphs
 ; into chunks of this size for better BERT performance.
 CHUNK_SIZE=400
+; Embedding model used for preservation score calculation
+SCORER_MODEL=paraphrase-multilingual-MiniLM-L12-v2
+; Timeout in seconds for scoring. 0 to disable.
+SCORER_TIMEOUT=30
 
 [pricing]
 ; Seconds before re-fetching LiteLLM prices (0 = always fetch)

@@ -39,7 +39,7 @@ class LinguaAdapter:
         self._device = device
         self._chunk_size = chunk_size
         self._compressor: PromptCompressor | None = None
-        self._lock = threading.Lock()
+        self._load_lock = threading.Lock()
 
     def _split_into_chunks(self, text: str, target_model: str) -> list[str]:
         # split by double newline (paragraphs)
@@ -70,21 +70,28 @@ class LinguaAdapter:
         return chunks
 
     def load(self) -> None:
-        hf_model_id = SUPPORTED_MODELS.get(self._model_name)
-        if hf_model_id is None:
-            raise ValueError(
-                f"Unknown compression model: {self._model_name}. "
-                f"Valid options: {list(SUPPORTED_MODELS)}"
+        if self._compressor is not None:
+            return
+
+        with self._load_lock:
+            if self._compressor is not None:
+                return
+
+            hf_model_id = SUPPORTED_MODELS.get(self._model_name)
+            if hf_model_id is None:
+                raise ValueError(
+                    f"Unknown compression model: {self._model_name}. "
+                    f"Valid options: {list(SUPPORTED_MODELS)}"
+                )
+            logger.info("Loading compression model: %s on %s", hf_model_id, self._device)
+            self._compressor = PromptCompressor(
+                model_name=hf_model_id,
+                use_llmlingua2=True,
+                device_map=self._device,
+                model_config={"cache_dir": str(self._models_dir)},
+                open_api_config={},
             )
-        logger.info("Loading compression model: %s on %s", hf_model_id, self._device)
-        self._compressor = PromptCompressor(
-            model_name=hf_model_id,
-            use_llmlingua2=True,
-            device_map=self._device,
-            model_config={"cache_dir": str(self._models_dir)},
-            open_api_config={},
-        )
-        logger.info("Compression model loaded")
+            logger.info("Compression model loaded")
 
     def compress(self, text: str, ratio: float, target_model: str) -> CompressionResult:
         if self._compressor is None:
@@ -97,17 +104,18 @@ class LinguaAdapter:
             compressed_parts: list[str] = []
             total_compressed_tokens = 0
 
-            with self._lock:
-                for chunk in chunks:
-                    res = self._compressor.compress_prompt(
-                        chunk,
-                        rate=ratio,
-                        force_tokens=["\n"],
-                    )
-                    comp_text = res["compressed_prompt"]
-                    compressed_parts.append(comp_text)
-                    c_tokens, _ = count_tokens(comp_text, target_model)
-                    total_compressed_tokens += c_tokens
+            # PromptCompressor (LLMLingua-2) is thread-safe for inference on CPU
+            # because PyTorch forward passes do not mutate model state.
+            for chunk in chunks:
+                res = self._compressor.compress_prompt(
+                    chunk,
+                    rate=ratio,
+                    force_tokens=["\n"],
+                )
+                comp_text = res["compressed_prompt"]
+                compressed_parts.append(comp_text)
+                c_tokens, _ = count_tokens(comp_text, target_model)
+                total_compressed_tokens += c_tokens
 
             full_compressed = "\n".join(compressed_parts)
             actual_ratio = (

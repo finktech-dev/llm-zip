@@ -12,7 +12,7 @@ class CompressResponse(BaseModel):
     original_tokens: int
     compressed_tokens: int
     compression_ratio: float
-    preservation_score: float
+    preservation_score: float | None
     estimated_savings: dict[str, str]
     pricing_accuracy: str
     pricing_note: str
@@ -72,3 +72,20 @@ class HealthResponse(BaseModel):
 class ReadyResponse(BaseModel):
     status: str
     models_loaded: bool
+
+
+class EstimateRequest(BaseModel):
+    text: str = Field(..., min_length=1)
+    ratio: float = Field(default=0.5, ge=0.1, le=0.9)
+    model: str | None = Field(default=None)
+
+
+class EstimateResponse(BaseModel):
+    original_tokens: int
+    estimated_compressed_tokens: int
+    estimated_compression_ratio: float
+    estimated_savings: dict[str, str]
+    pricing_accuracy: str
+    pricing_note: str
+    would_compress: bool
+    warning: str | None

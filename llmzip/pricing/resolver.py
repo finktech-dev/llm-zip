@@ -1,7 +1,7 @@
 import logging
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from llmzip.pricing.fallback import FALLBACK_PRICES
 from llmzip.pricing.fetcher import fetch_prices
@@ -70,7 +70,7 @@ def resolve_prices() -> dict[str, dict[str, float]]:
 
 
 def _make_fallback() -> dict[str, dict[str, float]]:
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     fallback_with_meta = dict(FALLBACK_PRICES)
     fallback_with_meta["_meta"] = {  # type: ignore[assignment]
         "note": f"Rates from llm-zip fallback as of {today} (LiteLLM unavailable)",

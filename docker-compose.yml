@@ -12,10 +12,11 @@ services:
     networks:
       - llmzip-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/ready"]
+      interval: 15s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 120s
     logging:
       driver: "json-file"
       options:

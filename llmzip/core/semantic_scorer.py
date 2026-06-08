@@ -1,4 +1,5 @@
 import logging
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from pathlib import Path
 
 import numpy as np
@@ -12,21 +13,42 @@ CHUNK_OVERLAP = 20
 
 
 class SemanticScorer:
-    def __init__(self, models_dir: Path | None = None) -> None:
+    def __init__(
+        self,
+        models_dir: Path | None = None,
+        model_id: str = MODEL_ID,
+        timeout: int = 30,
+    ) -> None:
         self._model: SentenceTransformer | None = None
         self._models_dir = models_dir or Path("models")
+        self._model_id = model_id
+        self._timeout = timeout
 
     def load(self) -> None:
-        logger.info("Loading semantic scorer: %s", MODEL_ID)
+        logger.info("Loading semantic scorer: %s", self._model_id)
         self._model = SentenceTransformer(
-            MODEL_ID, cache_folder=str(self._models_dir)
+            self._model_id, cache_folder=str(self._models_dir)
         )
         logger.info("Semantic scorer loaded")
 
-    def score(self, original: str, compressed: str) -> float:
+    def score(self, original: str, compressed: str) -> float | None:
         if self._model is None:
             raise RuntimeError("SemanticScorer not loaded — call load() first")
 
+        if self._timeout == 0:
+            return self._calculate_score(original, compressed)
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(self._calculate_score, original, compressed)
+            try:
+                return future.result(timeout=self._timeout)
+            except TimeoutError:
+                logger.warning(
+                    "Semantic scoring timed out after %ds", self._timeout
+                )
+                return None
+
+    def _calculate_score(self, original: str, compressed: str) -> float:
         original_embedding = self._embed(original)
         compressed_embedding = self._embed(compressed)
         similarity = float(_cosine_similarity(original_embedding, compressed_embedding))

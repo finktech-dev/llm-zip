@@ -26,7 +26,7 @@ def _load_models(config) -> tuple[LinguaAdapter, SemanticScorer]:
         chunk_size=config.chunk_size,
     )
     lingua.load()
-    scorer = SemanticScorer(models_dir=models_dir)
+    scorer = SemanticScorer(models_dir=models_dir, model_id=config.scorer_model)
     scorer.load()
     return lingua, scorer
 
@@ -126,16 +126,17 @@ def compress(
     if result.warning:
         typer.echo(t("compress.warning.generic", warning=result.warning), err=True)
 
-    typer.echo(
-        t("compress.metrics",
-          original=result.original_tokens,
-          compressed=result.compressed_tokens,
-          ratio=result.compression_ratio,
-          score=score,
-          saving=savings.estimated_savings.get(model, "n/a"),
-          model=model),
-        err=True,
-    )
+    if not json_output:
+        typer.echo(
+            t("compress.metrics",
+              original=result.original_tokens,
+              compressed=result.compressed_tokens,
+              ratio=result.compression_ratio,
+              score=score,
+              saving=savings.estimated_savings.get(model, "n/a"),
+              model=model),
+            err=True,
+        )
 
     if json_output:
         payload = {

@@ -40,7 +40,7 @@ def convert(file_path: Path) -> ConversionResult:
             return ConversionResult(
                 text="",
                 source_format=suffix,
-                warning="file_produced_empty_text",
+                warning=_WARNING_FILE_EMPTY_TEXT,
             )
 
         return ConversionResult(text=text, source_format=suffix)

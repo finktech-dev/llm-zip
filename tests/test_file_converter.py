@@ -33,7 +33,7 @@ def test_convert_returns_result_on_success(mock_check, tmp_path) -> None:
     mock_md_instance = MagicMock()
     mock_md_instance.convert.return_value = mock_result
 
-    with patch("llmzip.conversion.file_converter.MarkItDown", return_value=mock_md_instance):
+    with patch("markitdown.MarkItDown", return_value=mock_md_instance):
         result = convert(fake_file)
 
     assert result.text == "extracted text from document"
@@ -52,7 +52,7 @@ def test_convert_returns_warning_on_empty_text(mock_check, tmp_path) -> None:
     mock_md_instance = MagicMock()
     mock_md_instance.convert.return_value = mock_result
 
-    with patch("llmzip.conversion.file_converter.MarkItDown", return_value=mock_md_instance):
+    with patch("markitdown.MarkItDown", return_value=mock_md_instance):
         result = convert(fake_file)
 
     assert result.warning == "compress.warning.file_empty_text"

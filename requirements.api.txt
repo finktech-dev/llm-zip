@@ -1,9 +1,3 @@
-# compression
-llmlingua>=0.2.2
-
-# preservation score
-sentence-transformers>=3.0.0
-
 # file conversion (optional feature)
 markitdown[all]>=0.1.0
 
@@ -25,6 +19,3 @@ httpx>=0.27.0
 
 # interactive cli
 questionary>=2.0.0
-
-# config
-# configparser is stdlib in Python 3.10+

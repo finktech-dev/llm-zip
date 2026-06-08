@@ -76,7 +76,7 @@ def _detect_system_lang() -> str | None:
     if system_lang:
         return system_lang[:2].lower()
     try:
-        loc = locale.getdefaultlocale()[0]
+        loc = locale.getlocale()[0]
         if loc:
             return loc[:2].lower()
     except Exception:

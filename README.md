@@ -1,7 +1,7 @@
 # 🗜️ llm-zip
 
 <p align="center">
-  <a href="https://github.com/finktech-dev/llm-zip/releases"><img src="https://img.shields.io/badge/version-0.1.8-blue?style=for-the-badge" alt="Version"></a>
+  <a href="https://github.com/finktech-dev/llm-zip/releases"><img src="https://img.shields.io/badge/version-0.2.0-blue?style=for-the-badge" alt="Version"></a>
   <a href="https://pypi.org/project/llm-zip/"><img src="https://img.shields.io/pypi/v/llm-zip?style=for-the-badge&logo=pypi&logoColor=white&color=3775A9" alt="PyPI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge" alt="License"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
@@ -165,15 +165,18 @@ Supported formats: PDF, Word (`.docx`), Excel (`.xlsx`), PowerPoint (`.pptx`), a
 
 ## Key Features
 
-| | Feature | Detail |
-|---|---|---|
-| 📄 | **Text and files** | Compress plain text or upload PDFs, Word, Excel, and PowerPoint directly |
-| 🪓 | **Smart Chunking** | Handle documents of any length by splitting text into chunks based on paragraphs |
-| 🖥️ | **CPU-Friendly** | Default model requires only ~700MB of RAM — no GPU needed |
-| 🌐 | **Global i18n** | CLI in English, Spanish, Portuguese, Chinese, and Japanese |
-| ⚙️ | **Configurable thresholds** | Define when llm-zip should and shouldn't intervene (`MIN_TOKENS_TO_COMPRESS`) |
-| 🚫 | **Ignore rules** | Exclude texts or system prompts via `.llmzipignore` and `.llmzipignore.local` |
-| 🔒 | **Self-hosted** | Your data never leaves your infrastructure |
+|    | Feature                    | Detail                                                                        |
+|:--:| :------------------------- | :---------------------------------------------------------------------------- |
+| 📄 | **Text and files**         | Compress plain text or upload PDFs, Word, Excel, and PowerPoint directly      |
+| 🪓 | **Smart Chunking**         | Handle documents of any length by splitting text into chunks by paragraphs    |
+| 🔑 | **Optional auth**          | Protect your instance with `API_KEY` in config (`Authorization: Bearer`)      |
+| 📊 | **Dry-run estimate**       | `/v1/estimate` calculates savings without compressing                         |
+| 🔀 | **Split mode**             | Run API and inference engine as separate containers (`DEPLOY_MODE=split`)     |
+| 🖥️ | **CPU-Friendly**           | Default model requires only ~700MB of RAM — no GPU needed                     |
+| 🌐 | **Global i18n**            | CLI in English, Spanish, Portuguese, Chinese, and Japanese                    |
+| ⚙️ | **Configurable thresholds**| Define when llm-zip should and shouldn't intervene (`MIN_TOKENS_TO_COMPRESS`) |
+| 🚫 | **Ignore rules**           | Exclude texts or system prompts via `.llmzipignore` and `.llmzipignore.local` |
+| 🔒 | **Self-hosted**            | Your data never leaves your infrastructure                                    |
 
 ---
 
@@ -181,9 +184,12 @@ Supported formats: PDF, Word (`.docx`), Excel (`.xlsx`), PowerPoint (`.pptx`), a
 
 For CI or Docker deployments, you can override defaults with environment variables:
 
-| Variable | Description |
-|---|---|
-| `LLMZIP_LANG` | Forces CLI language (`en`, `es`, `pt`, `zh`, `ja`). Overrides system locale. |
+| Variable      | Description                                                                    |
+| :------------ | :----------------------------------------------------------------------------- |
+| `LLMZIP_LANG` | Forces CLI language (`en`, `es`, `pt`, `zh`, `ja`). Overrides system locale.   |
+| `DEPLOY_MODE` | `monolith` (default) or `split` — separates API from inference container       |
+| `MODELS_URL`  | URL of the models service in split mode (default: `http://llmzip-models:8001`) |
+| `API_KEY`     | Optional security key for `/v1/*` endpoints                                    |
 
 ---
 
@@ -222,7 +228,7 @@ The following results were obtained by running llm-zip against real documents du
 > If you run llm-zip on real hardware, please submit your results via PR.
 
 | Hardware | Model | Tokens | Time |
-| :------- | :---: | :----: | ---: |
+| :------- | :---: | :----: | :--- |
 | —        |   —   |   —    | —    |
 
 </details>
@@ -247,7 +253,7 @@ The following results were obtained by running llm-zip against real documents du
 - **Extractive compression** — tokens are removed, not rewritten. Some nuance may be lost at aggressive ratios (above 0.7).
 - **Pricing accuracy** — savings are *estimates*. Non-OpenAI tokenizers use a character-ratio heuristic with a ±10% margin of error.
 - **Format loss** — file conversion extracts plain text only. Layout, tables, and complex formatting are not preserved.
-- **Production testing** — this is v0.1.9. Concurrent batch processing should be monitored closely in high-throughput environments.
+- **Production testing** — this is v0.2.0. Concurrent batch processing should be monitored closely in high-throughput environments.
 
 ---
 

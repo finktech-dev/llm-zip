@@ -1,0 +1,68 @@
+services:
+  llmzip-models:
+    build:
+      context: .
+      dockerfile: Dockerfile.models
+    container_name: llmzip-models
+    volumes:
+      - llmzip_models:/app/models
+    expose:
+      - "8001"          # Internal, not exposed to host
+    networks:
+      - llmzip-internal
+    environment:
+      - COMPRESSION_MODEL=${COMPRESSION_MODEL:-bert-base}
+      - SCORER_MODEL=${SCORER_MODEL:-paraphrase-multilingual-MiniLM-L12-v2}
+      - SCORER_TIMEOUT=${SCORER_TIMEOUT:-30}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  llmzip-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: llmzip-api
+    depends_on:
+      llmzip-models:
+        condition: service_healthy   # Wait for models to be ready
+    volumes:
+      - ./.llmzip.config:/app/.llmzip.config:ro
+      - ./.llmzipignore:/app/.llmzipignore:ro
+      - ./.llmzipignore.local:/app/.llmzipignore.local:ro
+    ports:
+      - "${LLMZIP_PORT:-8000}:8000"
+    networks:
+      - llmzip-internal
+    environment:
+      - DEPLOY_MODE=split
+      - MODELS_URL=http://llmzip-models:8001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  llmzip-internal:
+    driver: bridge
+    internal: false
+
+volumes:
+  llmzip_models:

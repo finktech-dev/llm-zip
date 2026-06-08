@@ -6,6 +6,28 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.2.0] — 2026-06-07
+
+### Added
+
+- **API Security**: Optional API Key authentication via `Authorization: Bearer <key>` header (configured via `API_KEY` in `[server]`).
+- **Rate Limiting**: Integrated `slowapi` for functional rate limiting. Configurable via `REQUESTS_PER_MINUTE` and `REQUESTS_PER_DAY` in `.llmzip.config`.
+- **Estimate Endpoint**: New `/v1/estimate` route for dry-run savings calculation without performing actual compression.
+- **Improved Concurrency**: Unblocked model inference in `LinguaAdapter`. Removed global locks during compression, allowing true parallel processing of batch items and chunks.
+- **Scorer Reliability**: Configurable `SCORER_TIMEOUT` and `SCORER_MODEL`. Scoring now runs with a timeout to prevent hanging requests if embedding models are slow.
+- **Split Mode**: New `DEPLOY_MODE=split` separates the API layer from the inference engine.
+  `llmzip-models` runs as an independent internal service exposing `/infer/compress` and `/infer/score`.
+  `llmzip-api` delegates inference via `RemoteLinguaAdapter` and `RemoteSemanticScorer`.
+  Added `Dockerfile.api`, `Dockerfile.models`, and `docker-compose.split.yml`.
+  `MODELS_URL` overrideable via environment variable.
+
+### Fixed
+
+- **CLI JSON Output**: Silenced human-readable metrics when the `--json` flag is active to ensure valid JSON responses.
+- **Token Accuracy**: Integrated `tiktoken.encoding_for_model()` for robust OpenAI model detection, replacing fragile substring matching.
+
+---
+
 ## [0.1.9] — 2026-06-06
 
 ### Added

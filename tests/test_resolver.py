@@ -1,7 +1,17 @@
+import pytest
 from unittest.mock import patch
 
 from llmzip.pricing.resolver import resolve_prices
 from llmzip.pricing.fallback import FALLBACK_PRICES
+
+
+@pytest.fixture(autouse=True)
+def reset_resolver():
+    import llmzip.pricing.resolver as resolver
+    resolver._cache = {}
+    resolver._cache_timestamp = 0.0
+    resolver._last_fetch_attempt = 0.0
+    yield
 
 
 @patch("llmzip.pricing.resolver.fetch_prices", return_value=None)
