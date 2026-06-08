@@ -30,6 +30,7 @@ from llmzip.core.remote_scorer import RemoteSemanticScorer
 from llmzip.core.semantic_scorer import SemanticScorer
 from llmzip.pricing.resolver import configure as configure_pricing
 
+from llmzip.api import limiter as limiter_module
 from llmzip.api.limiter import limiter
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
@@ -38,10 +39,10 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    config: AppConfig = load()
-    app.state.config = config
+    config: AppConfig = app.state.config
 
     if config.rate_limit_enabled:
+        limiter_module.set_limits(config.rate_limit_rpm, config.rate_limit_rpd)
         limiter.enabled = True
 
     configure_pricing(config.pricing_cache_ttl)
@@ -110,6 +111,7 @@ def create_app() -> FastAPI:
         version=importlib.metadata.version("llm-zip"),
         lifespan=lifespan,
     )
+    app.state.config = config
 
     if config.rate_limit_enabled:
         app.state.limiter = limiter

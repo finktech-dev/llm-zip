@@ -24,16 +24,21 @@ class ScoreRequest(BaseModel):
 class HealthResponse(BaseModel):
     status: str
 
+import threading
+
 class ReadyResponse(BaseModel):
     status: str
     models_loaded: bool
 
 _READY_MARKER = Path(os.environ.get("MODELS_DIR", "models")) / ".ready"
+_models_loaded_event = threading.Event()
 
 def set_models_loaded(value: bool) -> None:
     if value:
+        _models_loaded_event.set()
         _READY_MARKER.touch()
     else:
+        _models_loaded_event.clear()
         _READY_MARKER.unlink(missing_ok=True)
 
 @asynccontextmanager
@@ -78,7 +83,7 @@ def health():
 
 @app.get("/ready", response_model=ReadyResponse)
 def ready():
-    loaded = _READY_MARKER.exists()
+    loaded = _models_loaded_event.is_set() and _READY_MARKER.exists()
     return {"status": "ok" if loaded else "loading", "models_loaded": loaded}
 
 @app.post("/infer/compress")

@@ -33,6 +33,13 @@ def mock_load():
         m.return_value = AppConfig(**MOCK_CONFIG_BASE)
         yield m
 
+@pytest.fixture(autouse=True)
+def reset_limiter_storage():
+    from llmzip.api.limiter import limiter
+    limiter.limiter.storage.reset()
+    # Ensure it's disabled by default between tests
+    limiter.enabled = False
+
 @pytest.fixture
 def client(mock_load):
     # Mocking external dependencies in app.py
@@ -92,14 +99,14 @@ def test_health_always_public(mock_load):
 def test_rate_limiting(mock_load):
     cfg = AppConfig(**MOCK_CONFIG_BASE)
     cfg.rate_limit_enabled = True
-    cfg.rate_limit_rpm = 2 # Very low limit for testing
+    cfg.rate_limit_rpm = 2 # Low limit for testing
     mock_load.return_value = cfg
     
     from llmzip.api.app import create_app, app as global_app
     from llmzip.core.lingua_adapter import CompressionResult
     from fastapi.testclient import TestClient
+    from llmzip.api import limiter as limiter_module
     
-    # Injected config into global app for the decorators to pick up
     global_app.state.config = cfg
     
     mock_comp = CompressionResult(
@@ -114,6 +121,9 @@ def test_rate_limiting(mock_load):
         mock_lingua.return_value.compress.return_value = mock_comp
         mock_scorer.return_value.score.return_value = 0.95
         mock_sav.return_value = MagicMock(estimated_savings={"gpt-4o-mini": "$0.01"}, pricing_note="test")
+
+        # Set the dynamic limits before creating the app
+        limiter_module.set_limits(2, 10000)
 
         app = create_app()
         with TestClient(app) as client:

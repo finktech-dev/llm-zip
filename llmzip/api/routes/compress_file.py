@@ -4,40 +4,29 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, Request
 
-from llmzip.api.limiter import limiter
+from llmzip.api.limiter import limiter, get_rpm_limit, get_rpd_limit
 from llmzip.api.dependencies import get_config, get_lingua, get_scorer
 from llmzip.api.schemas import CompressResponse
 from llmzip.config.loader import AppConfig
-from llmzip.core.lingua_adapter import LinguaAdapter
+from llmzip.core.protocols import Compressor, Scorer
 from llmzip.core.savings_calculator import calculate_savings
-from llmzip.core.semantic_scorer import SemanticScorer
 from llmzip.core.token_counter import count_tokens
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1")
 
 
-def _get_rpm_limit() -> str:
-    from llmzip.api.app import app
-    return f"{app.state.config.rate_limit_rpm}/minute"
-
-
-def _get_rpd_limit() -> str:
-    from llmzip.api.app import app
-    return f"{app.state.config.rate_limit_rpd}/day"
-
-
 @router.post("/compress/file", response_model=CompressResponse, tags=["compression"])
-@limiter.limit(_get_rpm_limit)
-@limiter.limit(_get_rpd_limit)
+@limiter.limit(get_rpm_limit)
+@limiter.limit(get_rpd_limit)
 async def compress_file(
     file: UploadFile,
     request: Request,
     ratio: float = 0.5,
     model: str | None = None,
     config: AppConfig = Depends(get_config),
-    lingua: LinguaAdapter = Depends(get_lingua),
-    scorer: SemanticScorer = Depends(get_scorer),
+    lingua: Compressor = Depends(get_lingua),
+    scorer: Scorer = Depends(get_scorer),
 ) -> CompressResponse:
     model = model or config.default_model
 

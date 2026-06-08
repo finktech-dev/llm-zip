@@ -49,6 +49,13 @@ It started as an internal tool. It's open source because the problem is universa
 ## How it works
 
 ```text
+Your app  ──→  POST /v1/estimate  ──→  llm-zip
+                                           │
+                              counts tokens, estimates savings
+                              (no compression — CPU-free)
+                                           │
+              token counts + savings     ◄─┘
+
 Your app  ──→  POST /v1/compress  ──→  llm-zip
                                            │
                               compresses with LLMLingua-2
@@ -94,6 +101,8 @@ docker-compose up -d
 ```
 
 → API: `http://localhost:8000` · Docs: `http://localhost:8000/docs`
+
+> **Running in split mode?** See [v0.2.0 release notes](https://github.com/finktech-dev/llm-zip/releases/tag/v0.2.0) for `docker-compose.split.yml` and separate `Dockerfile.api` / `Dockerfile.models` — lets you scale the API layer without duplicating the ~700MB model weights.
 
 ---
 

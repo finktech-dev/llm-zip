@@ -21,7 +21,7 @@ def count_tokens(text: str, model: str) -> tuple[int, str]:
         enc = tiktoken.encoding_for_model(model_lower)
         count = len(enc.encode(text))
         return max(1, count), "exact"
-    except Exception:
+    except KeyError:
         # Fall back to provider-based ratio if model is unknown to tiktoken
         pass
 

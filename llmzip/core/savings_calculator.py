@@ -14,8 +14,9 @@ class SavingsResult:
 
 def calculate_savings(
     original_text: str,
-    compressed_text: str,
+    compressed_text: str | None,
     default_model: str,
+    simulated_ratio: float | None = None,
 ) -> SavingsResult:
     prices = resolve_prices()
     models_to_show = _build_model_list(default_model)
@@ -29,7 +30,12 @@ def calculate_savings(
             continue
 
         original_tokens, model_accuracy = count_tokens(original_text, model)
-        compressed_tokens, _ = count_tokens(compressed_text, model)
+        
+        if simulated_ratio is not None:
+            compressed_tokens = max(1, int(original_tokens * simulated_ratio))
+        else:
+            compressed_tokens, _ = count_tokens(compressed_text or "", model)
+            
         tokens_saved = max(0, original_tokens - compressed_tokens)
 
         # input token price per million → per token
