@@ -9,7 +9,7 @@ description = "Context compression sidecar for LLM applications. Reduce token co
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
-authors = [{ name = "Ariel A. Fink", email = "hello.finksystems@gmail.com" }]
+authors = [{ name = "FinkTech", email = "hello.finksystems@gmail.com" }]
 keywords = [
     "llm", "context-compression", "token-optimization",
     "fastapi", "llmlingua", "rag", "ai-cost-reduction"
