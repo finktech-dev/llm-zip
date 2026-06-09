@@ -6,6 +6,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.2.1] — 2026-06-09
+
+### Added
+- **Health Probes**: Added K8s-compliant `/health/live` and `/health/ready` endpoints.
+- **Info Endpoint**: Added `/v1/info` endpoint exposing system configuration, limits, and versions.
+- **Structured Logging**: Added JSON file logging (`logs/llmzip.log`) with rotating handlers and colored console output.
+- **File Validation**: Enforced `MAX_FILE_SIZE_MB` limit for the `/v1/compress/file` endpoint.
+- **CLI Commands**: Added `llmzip version` command.
+
+### Fixed
+- **Docker Dependencies**: Resolved `ModuleNotFoundError` by ensuring `sentence-transformers` is installed in the API container for semantic scoring logic.
+- **Dependency Scope**: Moved heavy ML libraries (`llmlingua`, `markitdown`) to an optional `[inference]` group in `pyproject.toml`.
+- **API Reliability**: Fixed a `NameError` causing internal server errors when accessing `get_warning` in compression routes.
+
+---
+
 ## [0.2.0] — 2026-06-07
 
 ### Added

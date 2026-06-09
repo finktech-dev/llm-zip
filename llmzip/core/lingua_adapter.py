@@ -2,8 +2,10 @@ import logging
 import threading
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from llmlingua import PromptCompressor
+if TYPE_CHECKING:
+    from llmlingua import PromptCompressor
 
 from llmzip.core.token_counter import count_tokens
 
@@ -38,7 +40,7 @@ class LinguaAdapter:
         self._models_dir = models_dir
         self._device = device
         self._chunk_size = chunk_size
-        self._compressor: PromptCompressor | None = None
+        self._compressor: "PromptCompressor | None" = None
         self._load_lock = threading.Lock()
 
     def _split_into_chunks(self, text: str, target_model: str) -> list[str]:
@@ -76,6 +78,14 @@ class LinguaAdapter:
         with self._load_lock:
             if self._compressor is not None:
                 return
+
+            try:
+                from llmlingua import PromptCompressor
+            except ImportError:
+                raise ImportError(
+                    "llmlingua is not installed. "
+                    "Please install llm-zip with inference dependencies: pip install llm-zip[inference]"
+                )
 
             hf_model_id = SUPPORTED_MODELS.get(self._model_name)
             if hf_model_id is None:

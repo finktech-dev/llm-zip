@@ -1,4 +1,5 @@
 import logging
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -11,13 +12,13 @@ from llmzip.api.schemas import (
     CompressRequest,
     CompressResponse,
 )
-from llmzip.api.dependencies import get_lingua, get_scorer, get_config
+from llmzip.api.dependencies import get_config, get_lingua, get_scorer, get_warning
 from llmzip.config.loader import AppConfig
 from llmzip.core.protocols import Compressor, Scorer
 from llmzip.core.savings_calculator import calculate_savings
 from llmzip.core.token_counter import count_tokens
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("llmzip.api.routes.compress")
 router = APIRouter(prefix="/v1")
 
 
@@ -31,18 +32,45 @@ def compress(
     lingua: Compressor = Depends(get_lingua),
     scorer: Scorer = Depends(get_scorer),
 ) -> CompressResponse:
+    start = time.perf_counter()
     model = req.model or config.default_model
 
     original_tokens, accuracy = count_tokens(req.text, model)
 
     if original_tokens > config.max_tokens:
+        logger.warning(
+            "compress error",
+            extra={
+                "event": "compress_error",
+                "error": "text_too_long",
+                "tokens_in": original_tokens,
+                "status_code": 413,
+            },
+        )
         raise HTTPException(
             status_code=413,
-            detail=f"Text exceeds MAX_TOKENS ({config.max_tokens}). Got ~{original_tokens} tokens.",
+            detail=(
+                f"Text has ~{original_tokens:,} tokens, which exceeds MAX_TOKENS "
+                f"({config.max_tokens:,}). Consider splitting the text or "
+                f"increasing MAX_TOKENS in your [server] config."
+            ),
         )
 
     if original_tokens < config.min_tokens_to_compress:
         savings = calculate_savings(req.text, req.text, config.default_model)
+        elapsed_ms = int((time.perf_counter() - start) * 1000)
+        logger.info(
+            "compress ok",
+            extra={
+                "event": "compress_ok",
+                "tokens_in": original_tokens,
+                "tokens_out": original_tokens,
+                "ratio": 1.0,
+                "model": model,
+                "elapsed_ms": elapsed_ms,
+                "skipped": True,
+            },
+        )
         return CompressResponse(
             compressed=req.text,
             original_tokens=original_tokens,
@@ -53,24 +81,42 @@ def compress(
             pricing_accuracy=accuracy,
             pricing_note=savings.pricing_note,
             skipped=True,
-            warning=None,
+            warning=get_warning(None, accuracy, model),
         )
 
     result = lingua.compress(req.text, req.ratio, model)
     score = scorer.score(req.text, result.compressed_text)
     savings = calculate_savings(req.text, result.compressed_text, model)
+    elapsed_ms = int((time.perf_counter() - start) * 1000)
+    logger.info(
+        "compress ok",
+        extra={
+            "event": "compress_ok",
+            "tokens_in": original_tokens,
+            "tokens_out": result.compressed_tokens,
+            "ratio": round(result.compression_ratio, 3),
+            "model": model,
+            "elapsed_ms": elapsed_ms,
+            "skipped": False,
+        },
+    )
+
+    warning = result.warning
+    if accuracy != "exact":
+        msg = f"Model '{model}' token count is estimated (±10%). Exact counting is supported for OpenAI models (gpt-*, o1, o3, o4)."
+        warning = f"{warning}. {msg}" if warning else msg
 
     return CompressResponse(
         compressed=result.compressed_text,
         original_tokens=result.original_tokens,
         compressed_tokens=result.compressed_tokens,
-        compression_ratio=result.compression_ratio,
+        compression_ratio=round(result.compression_ratio, 3),
         preservation_score=score,
         estimated_savings=savings.estimated_savings,
         pricing_accuracy=accuracy,
         pricing_note=savings.pricing_note,
         skipped=False,
-        warning=result.warning,
+        warning=warning,
     )
 
 

@@ -16,12 +16,16 @@ from slowapi.util import get_remote_address
 
 class _HealthCheckFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
-        return "GET /health" not in record.getMessage() and "GET /ready" not in record.getMessage()
+        message = record.getMessage()
+        return not any(
+            path in message
+            for path in ["GET /health", "GET /ready", "GET /health/live", "GET /health/ready"]
+        )
 
 
 logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
 
-from llmzip.api.routes import compress, compress_file, estimate, health, models
+from llmzip.api.routes import compress, compress_file, estimate, health, info, models
 from llmzip.api.routes.health import set_models_loaded
 from llmzip.config.loader import AppConfig, load
 from llmzip.core.lingua_adapter import LinguaAdapter
@@ -32,9 +36,10 @@ from llmzip.pricing.resolver import configure as configure_pricing
 
 from llmzip.api import limiter as limiter_module
 from llmzip.api.limiter import limiter
+from llmzip.logging_config import setup_logging
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
-logger = logging.getLogger(__name__)
+setup_logging()
+logger = logging.getLogger("llmzip.api")
 
 
 @asynccontextmanager
@@ -129,7 +134,8 @@ def create_app() -> FastAPI:
 
         # Public endpoints
         allowed_paths = {
-            "/health", "/ready", "/docs", "/openapi.json", "/redoc",
+            "/health", "/ready", "/health/live", "/health/ready",
+            "/v1/info", "/docs", "/openapi.json", "/redoc",
             "/v1/health", "/v1/ready" # safety check for prefixed routes if any
         }
         if request.url.path in allowed_paths or request.url.path.startswith(("/docs", "/redoc", "/openapi.json")):
@@ -148,6 +154,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(models.router)
     app.include_router(estimate.router)
+    app.include_router(info.router)
     app.include_router(compress.router)
     app.include_router(compress_file.router)
 

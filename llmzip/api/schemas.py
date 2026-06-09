@@ -74,6 +74,25 @@ class ReadyResponse(BaseModel):
     models_loaded: bool
 
 
+class LiveResponse(BaseModel):
+    status: str
+
+
+class ReadyDetailResponse(BaseModel):
+    status: str
+    models_loaded: bool
+    deploy_mode: str
+
+
+class InfoResponse(BaseModel):
+    version: str
+    compression_model: str
+    scorer_model: str
+    deploy_mode: str
+    features: dict[str, bool]
+    limits: dict[str, int | float]
+
+
 class EstimateRequest(BaseModel):
     text: str = Field(..., min_length=1)
     ratio: float = Field(default=0.5, ge=0.1, le=0.9)

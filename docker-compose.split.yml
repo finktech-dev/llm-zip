@@ -47,11 +47,11 @@ services:
       - DEPLOY_MODE=split
       - MODELS_URL=http://llmzip-models:8001
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/ready"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/ready"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
     restart: unless-stopped
     logging:
       driver: "json-file"

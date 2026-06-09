@@ -31,6 +31,9 @@ htmlcov/
 models/
 
 # Docker
+# Logs
+logs/*
+!logs/.gitkeep
 *.log
 
 # Scripts

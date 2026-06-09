@@ -28,3 +28,14 @@ def main(
 app.command("compress")(compress)
 app.command("prices")(prices)
 app.command("download-models")(download_models)
+
+
+@app.command()
+def version():
+    "Show llm-zip version."
+    from llmzip import __version__
+    import typer
+    typer.echo(f"llm-zip {__version__}")
+
+if __name__ == "__main__":
+    app()

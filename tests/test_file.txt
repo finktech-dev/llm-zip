@@ -1,0 +1,1 @@
+Este es un archivo de prueba complejo para verificar que la funcionalidad de compresión de archivos funcione correctamente en el sidecar. Debería poder comprimirse sin problemas.

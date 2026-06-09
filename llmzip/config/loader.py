@@ -33,6 +33,7 @@ class AppConfig:
     rate_limit_enabled: bool
     rate_limit_rpm: int
     rate_limit_rpd: int
+    max_file_size_mb: int
     file_conversion_enabled: bool
     lang: str
 
@@ -66,7 +67,10 @@ def load() -> AppConfig:
         api_key_val = parser.get("server", "API_KEY", fallback="").strip()
         api_key = api_key_val if api_key_val else None
 
-        deploy_mode = parser.get("server", "DEPLOY_MODE", fallback="monolith").lower()
+        deploy_mode = os.environ.get(
+            "DEPLOY_MODE",
+            parser.get("server", "DEPLOY_MODE", fallback="monolith")
+        ).lower()
         # Environment variable takes precedence for container linking
         models_url = os.environ.get(
             "MODELS_URL", 
@@ -103,6 +107,7 @@ def load() -> AppConfig:
             rate_limit_rpd=int(
                 parser.get("rate_limit", "REQUESTS_PER_DAY", fallback="10000")
             ),
+            max_file_size_mb=int(parser.get("server", "MAX_FILE_SIZE_MB", fallback="50")),
             file_conversion_enabled=parser.get("features", "FILE_CONVERSION", fallback="true")
             .lower()
             == "true",

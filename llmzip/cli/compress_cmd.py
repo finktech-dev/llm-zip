@@ -112,10 +112,12 @@ def compress(
         raise typer.Exit(code=2)
 
     if original_tokens < config.min_tokens_to_compress:
-        typer.echo(
-            t("compress.skipped", threshold=config.min_tokens_to_compress),
-            err=True,
-        )
+        if not json_output:
+            typer.echo(
+                f"⚠ Skipped: text has {original_tokens:,} tokens, "
+                f"below MIN_TOKENS_TO_COMPRESS. Returning original text.",
+                err=True,
+            )
         _write_output(text, output)
         raise typer.Exit(code=0)
 

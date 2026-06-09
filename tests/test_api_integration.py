@@ -23,6 +23,7 @@ MOCK_CONFIG_BASE = {
     "rate_limit_enabled": False,
     "rate_limit_rpm": 60,
     "rate_limit_rpd": 10000,
+    "max_file_size_mb": 50,
     "file_conversion_enabled": True,
     "lang": "en"
 }

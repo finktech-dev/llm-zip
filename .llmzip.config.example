@@ -1,6 +1,8 @@
 [server]
 ; Maximum tokens accepted per request — tune to your hardware
 MAX_TOKENS=
+; Maximum file size for /v1/compress/file (in MB). Default: 50
+MAX_FILE_SIZE_MB=50
 ; Below this threshold, text is returned as-is (skipped=true)
 MIN_TOKENS_TO_COMPRESS=500
 PORT=8000
