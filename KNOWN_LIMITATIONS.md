@@ -72,19 +72,4 @@ This document lists known limitations of the current release, their impact, and 
 
 **Planned fix:** Optional audio support via `pip install llm-zip[audio]` is planned for v0.5.0, or earlier if there is user demand or a community contribution.
 
----
 
-## Windows — Log Directory (v0.2.1+)
-
-**What it means:** The rotating log file is written to `logs/llmzip.log` relative to the working directory. On Windows, this path resolves correctly when running with `docker compose` (the working directory is `/app` inside the container). When running `uvicorn` directly on Windows without Docker, the `logs/` directory must exist manually.
-
-**Workaround:** Create the directory before starting the server:
-```bash
-mkdir logs
-uvicorn llmzip.api.app:app --host 0.0.0.0 --port 8000
-```
-
-Or set a custom path via the `LOG_FILE` environment variable:
-```bash
-LOG_FILE=C:\llmzip\logs\llmzip.log uvicorn llmzip.api.app:app ...
-```
