@@ -1,6 +1,6 @@
 [server]
 ; Maximum tokens accepted per request — tune to your hardware
-MAX_TOKENS=
+MAX_TOKENS=128000
 ; Maximum file size for /v1/compress/file (in MB). Default: 50
 MAX_FILE_SIZE_MB=50
 ; Below this threshold, text is returned as-is (skipped=true)
@@ -20,7 +20,7 @@ MODELS_URL=http://llmzip-models:8001
 DEFAULT_RATIO=0.5
 ; Used for savings estimation in responses
 ; Options: gpt-4o-mini, gpt-5.4-mini, claude-haiku-4-5, gemini-2.5-flash-lite, deepseek-v4-flash
-DEFAULT_MODEL=
+DEFAULT_MODEL=gpt-4o-mini
 ; Maximum texts per batch request
 MAX_BATCH_SIZE=25
 ; Parallel workers for batch processing
