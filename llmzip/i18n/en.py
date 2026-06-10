@@ -4,6 +4,7 @@ STRINGS: dict[str, str] = {
     "compress.warning.conversion_disabled": "Warning: file conversion disabled in config — treating as plain text.",
     "compress.warning.generic":         "Warning: {warning}",
     "compress.warning.compression_failed": "Compression failed — returning original text.",
+    "compress.warning.chunk_truncated": "Chunk size exceeded. Text was forcefully truncated by the underlying model.",
     "compress.warning.file_empty_text": "File conversion produced no extractable text.",
     "compress.error.above_max_tokens":  "Error: text exceeds MAX_TOKENS ({max_tokens}). Got ~{tokens} tokens.",
     "compress.skipped":                 "⚠  Skipped — below MIN_TOKENS_TO_COMPRESS ({threshold}). Returning original.",

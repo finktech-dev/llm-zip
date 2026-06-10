@@ -1,12 +1,12 @@
 import logging
-import time
 import tempfile
+import time
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile
 
-from llmzip.api.limiter import limiter, get_rpm_limit, get_rpd_limit
 from llmzip.api.dependencies import get_config, get_lingua, get_scorer
+from llmzip.api.limiter import get_rpd_limit, get_rpm_limit, limiter
 from llmzip.api.schemas import CompressResponse
 from llmzip.config.loader import AppConfig
 from llmzip.core.protocols import Compressor, Scorer
@@ -80,9 +80,8 @@ async def compress_file(
     if not content:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
-    tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
-    tmp.close()
-    tmp_path = Path(tmp.name)
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp_path = Path(tmp.name)
     try:
         tmp_path.write_bytes(content)
         conversion = convert(tmp_path)

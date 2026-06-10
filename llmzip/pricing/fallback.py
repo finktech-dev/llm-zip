@@ -2,7 +2,7 @@
 # All values are USD per million tokens (input / output).
 # PRICES_LAST_UPDATED = "2026-06-06"
 
-FALLBACK_PRICES: dict[str, dict[str, float]] = {
+FALLBACK_PRICES: dict[str, dict[str, float | str]] = {
     # OpenAI
     "gpt-5.5":          {"input": 5.00,  "output": 30.00},
     "gpt-5.4":          {"input": 2.50,  "output": 15.00},

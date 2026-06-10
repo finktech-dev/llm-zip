@@ -1,7 +1,6 @@
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 import typer
 
@@ -77,12 +76,12 @@ def _download_lingua(model_name: str) -> None:
         marker.touch()
         typer.echo(t("download.compression_ready", model=model_name))
     except Exception as exc:
-        typer.echo(t("download.compression_failed", error=exc), err=True)
+        typer.echo(t("download.compression_failed", error=str(exc)), err=True)
         sys.exit(1)
 
 
 def _download_scorer() -> None:
-    from llmzip.core.semantic_scorer import SemanticScorer, MODEL_ID
+    from llmzip.core.semantic_scorer import MODEL_ID, SemanticScorer
     marker = MODELS_DIR / ".scorer.ok"
 
     if marker.exists():
@@ -96,16 +95,16 @@ def _download_scorer() -> None:
         marker.touch()
         typer.echo(t("download.scorer_ready"))
     except Exception as exc:
-        typer.echo(t("download.scorer_failed", error=exc), err=True)
+        typer.echo(t("download.scorer_failed", error=str(exc)), err=True)
         sys.exit(1)
 
 
 def _select_model_interactive() -> str:
     try:
         import questionary
-    except ImportError:
+    except ImportError as e:
         typer.echo("Install questionary for interactive mode: pip install questionary", err=True)
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
     choices = []
     for key, info in _MODEL_INFO.items():
@@ -124,7 +123,7 @@ def _select_model_interactive() -> str:
     if result is None:
         raise typer.Exit(0)
 
-    return result
+    return str(result)
 
 
 def _serve_readiness() -> None:
@@ -141,7 +140,7 @@ def _serve_readiness() -> None:
                 self.send_response(404)
                 self.end_headers()
 
-        def log_message(self, *args) -> None:
+        def log_message(self, format: str, *args: object) -> None:
             pass
 
     with socketserver.TCPServer(("", 8001), ReadyHandler) as httpd:

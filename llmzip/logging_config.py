@@ -1,8 +1,9 @@
-import logging
 import json
+import logging
 import os
 from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
+
 
 class JSONFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
@@ -40,7 +41,8 @@ class ColorFormatter(logging.Formatter):
 
 def setup_logging(log_level: str = "INFO") -> None:
     root_logger = logging.getLogger("llmzip")
-    if root_logger.handlers: return # Already configured
+    if root_logger.handlers:
+        return # Already configured
 
     actual_log_level = os.environ.get("LOG_LEVEL", log_level)
     root_logger.setLevel(actual_log_level)

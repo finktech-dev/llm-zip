@@ -1,5 +1,7 @@
 from typing import Protocol
+
 from llmzip.core.lingua_adapter import CompressionResult
+
 
 class Compressor(Protocol):
     def load(self) -> None: ...

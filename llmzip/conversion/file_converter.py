@@ -31,7 +31,7 @@ def convert(file_path: Path) -> ConversionResult:
         )
 
     try:
-        from markitdown import MarkItDown  # type: ignore[import]
+        from markitdown import MarkItDown
         md = MarkItDown()
         result = md.convert(str(file_path))
         text = result.text_content.strip()
@@ -54,10 +54,9 @@ def convert_bytes(content: bytes, filename: str) -> ConversionResult:
     import tempfile
 
     suffix = Path(filename).suffix.lower()
-    tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
-    tmp_path = Path(tmp.name)
-    tmp.write(content)
-    tmp.close()
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(content)
+        tmp_path = Path(tmp.name)
 
     try:
         return convert(tmp_path)
@@ -68,9 +67,9 @@ def convert_bytes(content: bytes, filename: str) -> ConversionResult:
 def _assert_markitdown_available() -> None:
     try:
         import markitdown  # noqa: F401
-    except ImportError:
+    except ImportError as e:
         raise RuntimeError(
             "MarkItDown is not installed. "
             "Install it with: pip install markitdown[all]\n"
             "Or set FILE_CONVERSION=false in .llmzip.config to disable file support."
-        )
+        ) from e

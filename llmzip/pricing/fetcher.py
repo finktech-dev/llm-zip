@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, timezone
-import httpx
 
+import httpx
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ LITELLM_PRICES_URL = (
 _TIMEOUT_SECONDS = 5.0
 
 
-def fetch_prices() -> dict[str, dict[str, float]] | None:
+def fetch_prices() -> dict[str, dict[str, float | str]] | None:
     """
     Fetches current model prices from LiteLLM's public JSON.
     Returns a normalized dict {model_name: {input: float, output: float}}
@@ -28,8 +28,8 @@ def fetch_prices() -> dict[str, dict[str, float]] | None:
         return None
 
 
-def _normalize(raw: dict) -> dict[str, dict[str, float]]:
-    prices: dict[str, dict[str, float]] = {}
+def _normalize(raw: dict[str, object]) -> dict[str, dict[str, float | str]]:
+    prices: dict[str, dict[str, float | str]] = {}
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     for model, data in raw.items():
@@ -48,5 +48,5 @@ def _normalize(raw: dict) -> dict[str, dict[str, float]]:
     prices["_meta"] = {
         "note": f"Rates from LiteLLM as of {today}",
         "source": "litellm",
-    }  # type: ignore[assignment]
+    }
     return prices

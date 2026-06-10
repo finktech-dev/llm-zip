@@ -1,6 +1,9 @@
 import pytest
 from unittest.mock import patch, MagicMock
 
+# Mark all tests in this module as integration
+pytestmark = pytest.mark.integration
+
 # Mock load before importing create_app to avoid actual config reading at module level
 from llmzip.config.loader import AppConfig
 

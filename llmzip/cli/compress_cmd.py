@@ -2,23 +2,21 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 import typer
 
-from llmzip.i18n import t
-from llmzip.config.loader import load
+from llmzip.config.loader import AppConfig, load
+from llmzip.core.featured_models import FEATURED_MODELS
 from llmzip.core.lingua_adapter import LinguaAdapter
 from llmzip.core.savings_calculator import calculate_savings
 from llmzip.core.semantic_scorer import SemanticScorer
 from llmzip.core.token_counter import count_tokens
-from llmzip.core.featured_models import FEATURED_MODELS
-from llmzip.pricing.fallback import FALLBACK_PRICES
+from llmzip.i18n import t
 
 logger = logging.getLogger(__name__)
 
 
-def _load_models(config) -> tuple[LinguaAdapter, SemanticScorer]:
+def _load_models(config: AppConfig) -> tuple[LinguaAdapter, SemanticScorer]:
     models_dir = Path("models")
     lingua = LinguaAdapter(
         model_name=config.compression_model,
@@ -40,7 +38,7 @@ def _read_input(source: Path | None) -> str:
     raise typer.Exit(code=2)
 
 
-def _maybe_convert(text: str, source: Path | None, config) -> str:
+def _maybe_convert(text: str, source: Path | None, config: AppConfig) -> str:
     if source is None:
         return text
     suffix = source.suffix.lower()
@@ -63,19 +61,19 @@ def _maybe_convert(text: str, source: Path | None, config) -> str:
 
 
 def compress(
-    source: Optional[Path] = typer.Argument(
+    source: Path | None = typer.Argument(
         default=None,
         help="File to compress. Omit to read from stdin.",
     ),
-    ratio: Optional[float] = typer.Option(
+    ratio: float | None = typer.Option(
         None, "--ratio", "-r", min=0.1, max=0.9,
         help="Compression ratio (0.1–0.9).",
     ),
-    model: Optional[str] = typer.Option(
+    model: str | None = typer.Option(
         None, "--model", "-m",
         help="Target model for savings estimation.",
     ),
-    output: Optional[Path] = typer.Option(
+    output: Path | None = typer.Option(
         None, "--output", "-o",
         help="Write compressed text to file instead of stdout.",
     ),
@@ -134,7 +132,7 @@ def compress(
               original=result.original_tokens,
               compressed=result.compressed_tokens,
               ratio=result.compression_ratio,
-              score=score,
+              score=score or 0.0,
               saving=savings.estimated_savings.get(model, "n/a"),
               model=model),
             err=True,
@@ -161,7 +159,7 @@ def compress(
 def _write_output(text: str, destination: Path | None) -> None:
     if destination is not None:
         destination.write_text(text, encoding="utf-8")
-        typer.echo(t("compress.written", path=destination), err=True)
+        typer.echo(t("compress.written", path=str(destination)), err=True)
     else:
         typer.echo(text, nl=False)
 
@@ -174,9 +172,9 @@ def _fill_interactively(
 ) -> tuple[Path | None, float | None, str | None, Path | None]:
     try:
         import questionary
-    except ImportError:
+    except ImportError as e:
         typer.echo("Install questionary for interactive mode: pip install questionary", err=True)
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
     # source
     if source is None:

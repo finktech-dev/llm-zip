@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from llmzip.core.token_counter import count_tokens
 from llmzip.core.featured_models import FEATURED_MODELS
+from llmzip.core.token_counter import count_tokens
 from llmzip.pricing.resolver import resolve_prices
 
 
@@ -23,23 +23,27 @@ def calculate_savings(
 
     savings: dict[str, str] = {}
     accuracy = "exact"
+    
+    original_cache: dict[str, int] = {}
+    compressed_cache: dict[str, int] = {}
 
     for model in models_to_show:
         price_entry = prices.get(model)
         if price_entry is None:
             continue
 
-        original_tokens, model_accuracy = count_tokens(original_text, model)
+        original_tokens, model_accuracy = count_tokens(original_text, model, cache=original_cache)
         
         if simulated_ratio is not None:
             compressed_tokens = max(1, int(original_tokens * simulated_ratio))
         else:
-            compressed_tokens, _ = count_tokens(compressed_text or "", model)
+            compressed_tokens, _ = count_tokens(compressed_text or "", model, cache=compressed_cache)
+            
             
         tokens_saved = max(0, original_tokens - compressed_tokens)
 
         # input token price per million → per token
-        price_per_token = price_entry["input"] / 1_000_000
+        price_per_token = float(price_entry["input"]) / 1_000_000
         saved_usd = tokens_saved * price_per_token
 
         savings[model] = f"${saved_usd:.6f}"
@@ -50,7 +54,7 @@ def calculate_savings(
     return SavingsResult(
         estimated_savings=savings,
         pricing_accuracy=accuracy,
-        pricing_note=prices.get("_meta", {}).get("note", ""),
+        pricing_note=str(prices.get("_meta", {}).get("note", "")),
     )
 
 

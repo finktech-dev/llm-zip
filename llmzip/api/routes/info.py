@@ -1,7 +1,9 @@
 from importlib.metadata import version
+
 from fastapi import APIRouter, Depends
-from llmzip.api.schemas import InfoResponse
+
 from llmzip.api.dependencies import get_config
+from llmzip.api.schemas import InfoResponse
 from llmzip.config.loader import AppConfig
 
 router = APIRouter(prefix="/v1")

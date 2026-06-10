@@ -1,5 +1,7 @@
 import logging
+
 import httpx
+
 from llmzip.core.lingua_adapter import CompressionResult
 
 logger = logging.getLogger(__name__)

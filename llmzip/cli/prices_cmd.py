@@ -1,4 +1,3 @@
-from typing import Optional
 
 import typer
 
@@ -7,7 +6,7 @@ from llmzip.pricing.resolver import resolve_prices
 
 
 def prices(
-    provider: Optional[str] = typer.Option(
+    provider: str | None = typer.Option(
         None,
         "--provider",
         "-p",
@@ -33,7 +32,7 @@ def prices(
     """Show current model prices from LiteLLM (or fallback)."""
     data = resolve_prices()
     meta = data.get("_meta", {})
-    note = meta.get("note", "") if isinstance(meta, dict) else ""
+    note = str(meta.get("note", "")) if isinstance(meta, dict) else ""
 
     if providers:
         _print_providers(data)
@@ -49,7 +48,7 @@ def prices(
     _print_table(data, note, selected_provider, show_all)
 
 
-def _print_providers(data: dict) -> None:
+def _print_providers(data: dict[str, dict[str, float | str]]) -> None:
     found = _extract_providers(data)
     typer.echo(f"\n{t('prices.providers_header')}:\n")
     for p in sorted(found):
@@ -57,7 +56,7 @@ def _print_providers(data: dict) -> None:
     typer.echo("")
 
 
-def _print_table(data: dict, note: str, provider: str | None, show_all: bool) -> None:
+def _print_table(data: dict[str, dict[str, float | str]], note: str, provider: str | None, show_all: bool) -> None:
     from rich.console import Console
     from rich.table import Table
 
@@ -95,8 +94,8 @@ def _print_table(data: dict, note: str, provider: str | None, show_all: bool) ->
 
         table.add_row(
             model,
-            f"{entry['input']:.4f}",
-            f"{entry['output']:.4f}"
+            f"{float(entry['input']):.4f}",
+            f"{float(entry['output']):.4f}"
         )
         found = True
 
@@ -108,7 +107,7 @@ def _print_table(data: dict, note: str, provider: str | None, show_all: bool) ->
     typer.echo("")
 
 
-def _extract_providers(data: dict) -> list[str]:
+def _extract_providers(data: dict[str, dict[str, float | str]]) -> list[str]:
     seen: set[str] = set()
     for model in data:
         if model == "_meta":
@@ -118,12 +117,12 @@ def _extract_providers(data: dict) -> list[str]:
     return sorted(seen)
 
 
-def _select_provider_interactive(data: dict) -> str:
+def _select_provider_interactive(data: dict[str, dict[str, float | str]]) -> str:
     try:
         import questionary
-    except ImportError:
+    except ImportError as e:
         typer.echo("Install questionary for interactive mode: pip install questionary", err=True)
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
     providers = _extract_providers(data)
     choices = [t("interactive.select_provider_all")] + providers
@@ -139,4 +138,4 @@ def _select_provider_interactive(data: dict) -> str:
     if result == t("interactive.select_provider_all"):
         return "__all__"
 
-    return result
+    return str(result)

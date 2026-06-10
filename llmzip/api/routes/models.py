@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from llmzip.api.schemas import ModelEntry, ModelsResponse
 from llmzip.pricing.resolver import resolve_prices
 
@@ -9,7 +10,7 @@ router = APIRouter(prefix="/v1")
 def list_models() -> ModelsResponse:
     prices = resolve_prices()
     meta = prices.get("_meta", {})
-    note = meta.get("note", "") if isinstance(meta, dict) else ""
+    note = str(meta.get("note", "")) if isinstance(meta, dict) else ""
 
     entries: list[ModelEntry] = []
     for model, data in prices.items():
@@ -18,9 +19,9 @@ def list_models() -> ModelsResponse:
         entries.append(
             ModelEntry(
                 model=model,
-                input_per_million_usd=data["input"],
-                output_per_million_usd=data["output"],
-                source=meta.get("source", "fallback"),
+                input_per_million_usd=float(data["input"]),
+                output_per_million_usd=float(data["output"]),
+                source=str(meta.get("source", "fallback")),
             )
         )
 

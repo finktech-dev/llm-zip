@@ -1,6 +1,6 @@
 from llmzip.conversion.file_converter import (
-    ConversionResult,
     SUPPORTED_EXTENSIONS,
+    ConversionResult,
     convert,
     convert_bytes,
 )

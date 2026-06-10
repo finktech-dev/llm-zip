@@ -6,6 +6,18 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.2.2] — 2026-06-09
+
+### Added
+- GitHub Actions: `ci.yml` runs on push/PR to main and develop (ruff → mypy → pytest without integration on Python 3.10/3.11/3.12). `release.yml` triggers on `v*.*.*` tags to run tests, build, and twine upload.
+- i18n: Added `compress.warning.chunk_truncated` key in all five supported languages (en, es, pt, zh, ja).
+
+### Fixed
+- Sub-sentence fallback: Paragraphs exceeding `chunk_size` tokens are now split at sentence boundaries (`[.!?]` followed by whitespace) before being passed to BERT. Sentences are then grouped into chunks the same way paragraphs are, preventing unnecessary BERT truncation on dense but readable prose.
+- Truncation warning: When a segment cannot be sub-divided further (single sentence or punctuation-free block exceeds `chunk_size`), the response now includes warning: `compress.warning.chunk_truncated` so callers are explicitly informed. Previously, truncation was silent.
+
+---
+
 ## [0.2.1] — 2026-06-09
 
 ### Added

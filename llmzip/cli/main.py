@@ -2,8 +2,8 @@ import typer
 
 import llmzip.i18n as i18n
 from llmzip.cli.compress_cmd import compress
-from llmzip.cli.prices_cmd import prices
 from llmzip.cli.download_models import download_models
+from llmzip.cli.prices_cmd import prices
 
 app = typer.Typer(
     name="llmzip",
@@ -31,10 +31,11 @@ app.command("download-models")(download_models)
 
 
 @app.command()
-def version():
+def version() -> None:
     "Show llm-zip version."
-    from llmzip import __version__
     import typer
+
+    from llmzip import __version__
     typer.echo(f"llm-zip {__version__}")
 
 if __name__ == "__main__":

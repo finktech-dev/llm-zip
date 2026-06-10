@@ -1,13 +1,14 @@
 import logging
 import os
+import threading
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from llmzip.core.lingua_adapter import LinguaAdapter, CompressionResult
+from llmzip.core.lingua_adapter import LinguaAdapter
 from llmzip.core.semantic_scorer import SemanticScorer
 
 logger = logging.getLogger(__name__)
@@ -23,8 +24,6 @@ class ScoreRequest(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str
-
-import threading
 
 class ReadyResponse(BaseModel):
     status: str
@@ -78,16 +77,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(title="llmzip-models", lifespan=lifespan)
 
 @app.get("/health", response_model=HealthResponse)
-def health():
+def health() -> dict[str, str]:
     return {"status": "ok"}
 
 @app.get("/ready", response_model=ReadyResponse)
-def ready():
+def ready() -> dict[str, str | bool]:
     loaded = _models_loaded_event.is_set() and _READY_MARKER.exists()
     return {"status": "ok" if loaded else "loading", "models_loaded": loaded}
 
 @app.post("/infer/compress")
-def infer_compress(req: CompressRequest):
+def infer_compress(req: CompressRequest) -> dict[str, str | int | float | None]:
     lingua: LinguaAdapter = app.state.lingua
     try:
         result = lingua.compress(req.text, req.ratio, req.target_model)
@@ -100,14 +99,14 @@ def infer_compress(req: CompressRequest):
         }
     except Exception as e:
         logger.error(f"Inference error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 @app.post("/infer/score")
-def infer_score(req: ScoreRequest):
+def infer_score(req: ScoreRequest) -> dict[str, float | None]:
     scorer: SemanticScorer = app.state.scorer
     try:
         score = scorer.score(req.original, req.compressed)
         return {"score": score}
     except Exception as e:
         logger.error(f"Scoring error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

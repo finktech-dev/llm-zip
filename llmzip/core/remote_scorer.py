@@ -1,4 +1,6 @@
 import logging
+from typing import cast
+
 import httpx
 
 logger = logging.getLogger(__name__)
@@ -25,7 +27,7 @@ class RemoteSemanticScorer:
                 )
                 response.raise_for_status()
                 data = response.json()
-                return data.get("score")
+                return cast(float | None, data.get("score"))
         except Exception as e:
             logger.error(f"Remote scoring failed: {e}")
             return None

@@ -1,6 +1,7 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -60,7 +61,7 @@ class SemanticScorer:
             chunks = [text]
         embeddings = self._model.encode(chunks, show_progress_bar=False)  # type: ignore[union-attr]
         # mean pooling across chunks → single vector representing the full text
-        return np.mean(embeddings, axis=0)
+        return cast(np.ndarray, np.mean(embeddings, axis=0))
 
 
 def _chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:

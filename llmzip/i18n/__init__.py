@@ -2,7 +2,8 @@ import locale
 import os
 from typing import Protocol
 
-from llmzip.i18n import en, es, pt, zh, ja
+from llmzip.i18n import en, es, ja, pt, zh
+
 
 class LangModule(Protocol):
     STRINGS: dict[str, str]
@@ -56,11 +57,11 @@ def t(key: str, **kwargs: str | int | float) -> str:
 
     if kwargs:
         try:
-            return value.format(**kwargs)
+            return str(value.format(**kwargs))
         except (KeyError, ValueError):
-            return value
+            return str(value)
 
-    return value
+    return str(value)
 
 
 def current_lang() -> str:

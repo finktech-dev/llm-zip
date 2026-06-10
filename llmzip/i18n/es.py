@@ -4,6 +4,7 @@ STRINGS: dict[str, str] = {
     "compress.warning.conversion_disabled": "Advertencia: conversión de archivos desactivada en la config — tratando como texto plano.",
     "compress.warning.generic":         "Advertencia: {warning}",
     "compress.warning.compression_failed": "La compresión falló — se devuelve el texto original.",
+    "compress.warning.chunk_truncated": "Límite de fragmento excedido. El modelo subyacente truncó el texto.",
     "compress.warning.file_empty_text": "La conversión del archivo no produjo texto extraíble.",
     "compress.error.above_max_tokens":  "Error: el texto supera MAX_TOKENS ({max_tokens}). Se detectaron ~{tokens} tokens.",
     "compress.skipped":                 "⚠  Omitido — por debajo de MIN_TOKENS_TO_COMPRESS ({threshold}). Se devuelve el original.",

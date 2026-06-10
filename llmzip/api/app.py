@@ -1,17 +1,29 @@
 import asyncio
 import importlib.metadata
 import logging
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import AsyncGenerator
+from typing import cast
 
 import httpx
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from fastapi.responses import JSONResponse, Response
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
+
+from llmzip.api import limiter as limiter_module
+from llmzip.api.limiter import limiter
+from llmzip.api.routes import compress, compress_file, estimate, health, info, models
+from llmzip.api.routes.health import set_models_loaded
+from llmzip.config.loader import AppConfig, load
+from llmzip.core.lingua_adapter import LinguaAdapter
+from llmzip.core.remote_lingua import RemoteLinguaAdapter
+from llmzip.core.remote_scorer import RemoteSemanticScorer
+from llmzip.core.semantic_scorer import SemanticScorer
+from llmzip.logging_config import setup_logging
+from llmzip.pricing.resolver import configure as configure_pricing
 
 
 class _HealthCheckFilter(logging.Filter):
@@ -22,22 +34,7 @@ class _HealthCheckFilter(logging.Filter):
             for path in ["GET /health", "GET /ready", "GET /health/live", "GET /health/ready"]
         )
 
-
 logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
-
-from llmzip.api.routes import compress, compress_file, estimate, health, info, models
-from llmzip.api.routes.health import set_models_loaded
-from llmzip.config.loader import AppConfig, load
-from llmzip.core.lingua_adapter import LinguaAdapter
-from llmzip.core.remote_lingua import RemoteLinguaAdapter
-from llmzip.core.remote_scorer import RemoteSemanticScorer
-from llmzip.core.semantic_scorer import SemanticScorer
-from llmzip.pricing.resolver import configure as configure_pricing
-
-from llmzip.api import limiter as limiter_module
-from llmzip.api.limiter import limiter
-from llmzip.logging_config import setup_logging
-
 setup_logging()
 logger = logging.getLogger("llmzip.api")
 
@@ -120,11 +117,17 @@ def create_app() -> FastAPI:
 
     if config.rate_limit_enabled:
         app.state.limiter = limiter
-        app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+        app.add_exception_handler(
+            RateLimitExceeded,
+            cast(Callable[[Request, Exception], Response | Awaitable[Response]], _rate_limit_exceeded_handler)
+        )
         app.add_middleware(SlowAPIMiddleware)
 
     @app.middleware("http")
-    async def auth_middleware(request: Request, call_next):
+    async def auth_middleware(
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         # request.app.state.config is set in lifespan.
         # Fallback for tests or startup edge cases.
         config: AppConfig | None = getattr(request.app.state, "config", None)

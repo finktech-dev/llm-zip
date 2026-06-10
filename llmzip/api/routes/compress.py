@@ -4,15 +4,16 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from llmzip.api.limiter import limiter, get_rpm_limit, get_rpd_limit
+from llmzip.api.dependencies import get_config, get_lingua, get_scorer, get_warning
+from llmzip.api.limiter import get_rpd_limit, get_rpm_limit, limiter
 from llmzip.api.schemas import (
+    BatchItem,
     BatchRequest,
     BatchResponse,
     BatchResultItem,
     CompressRequest,
     CompressResponse,
 )
-from llmzip.api.dependencies import get_config, get_lingua, get_scorer, get_warning
 from llmzip.config.loader import AppConfig
 from llmzip.core.protocols import Compressor, Scorer
 from llmzip.core.savings_calculator import calculate_savings
@@ -136,7 +137,7 @@ def compress_batch(
             detail=f"Batch size {len(req.texts)} exceeds MAX_BATCH_SIZE ({config.max_batch_size}).",
         )
 
-    def _process(index: int, item) -> BatchResultItem:
+    def _process(index: int, item: BatchItem) -> BatchResultItem:
         try:
             model = item.model or config.default_model
             original_tokens, accuracy = count_tokens(item.text, model)

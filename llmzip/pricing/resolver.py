@@ -8,7 +8,7 @@ from llmzip.pricing.fetcher import fetch_prices
 
 logger = logging.getLogger(__name__)
 
-_cache: dict[str, dict[str, float]] = {}
+_cache: dict[str, dict[str, float | str]] = {}
 _cache_timestamp: float = 0.0
 _cache_ttl: int = 3600
 
@@ -22,7 +22,7 @@ def configure(cache_ttl: int) -> None:
     _cache_ttl = cache_ttl
 
 
-def resolve_prices() -> dict[str, dict[str, float]]:
+def resolve_prices() -> dict[str, dict[str, float | str]]:
     global _cache, _cache_timestamp, _last_fetch_attempt
 
     now = time.monotonic()
@@ -69,10 +69,10 @@ def resolve_prices() -> dict[str, dict[str, float]]:
     return _make_fallback()
 
 
-def _make_fallback() -> dict[str, dict[str, float]]:
+def _make_fallback() -> dict[str, dict[str, float | str]]:
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    fallback_with_meta = dict(FALLBACK_PRICES)
-    fallback_with_meta["_meta"] = {  # type: ignore[assignment]
+    fallback_with_meta: dict[str, dict[str, float | str]] = dict(FALLBACK_PRICES)
+    fallback_with_meta["_meta"] = {
         "note": f"Rates from llm-zip fallback as of {today} (LiteLLM unavailable)",
         "source": "fallback",
     }
