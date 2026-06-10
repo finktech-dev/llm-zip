@@ -20,7 +20,7 @@ jobs:
       - name: Install lint dependencies
         run: |
           pip install ruff mypy
-          pip install .
+          pip install ".[inference]"
 
       - name: ruff check
         run: ruff check llmzip/
@@ -46,7 +46,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e ".[dev]"
+          pip install -e ".[dev,inference]"
 
       - name: Run unit tests (no models required)
         run: pytest -m "not integration" -v --tb=short
