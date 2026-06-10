@@ -25,7 +25,11 @@ jobs:
         run: pip install build twine
 
       - name: Install dependencies for tests
-        run: pip install -e ".[dev]"
+        run: |
+          pip install -e ".[dev,inference]"
+
+      - name: Create default config
+        run: cp .llmzip.config.example .llmzip.config
 
       - name: Run unit tests before publishing
         run: pytest -m "not integration" -v --tb=short
