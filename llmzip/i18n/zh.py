@@ -61,4 +61,7 @@ STRINGS: dict[str, str] = {
     "config.invalid_compression_model": "COMPRESSION_MODEL 必须为 'bert-base' 或 'xlm-roberta-large'，当前值为：{value}",
     "config.invalid_value":             "无效的配置值：{error}",
     "config.error_prefix":              "\n❌ LLMZip 配置错误：\n   {message}\n",
+    # pricing
+    "pricing.accuracy.exact":           "精确",
+    "pricing.accuracy.estimated":       "预估±10%",
 }

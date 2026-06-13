@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from llmzip.core.featured_models import FEATURED_MODELS
 from llmzip.core.token_counter import count_tokens
+from llmzip.i18n import t
 from llmzip.pricing.resolver import resolve_prices
 
 
@@ -18,11 +19,11 @@ def calculate_savings(
     default_model: str,
     simulated_ratio: float | None = None,
 ) -> SavingsResult:
-    prices = resolve_prices()
+    prices, meta = resolve_prices()
     models_to_show = _build_model_list(default_model)
 
     savings: dict[str, str] = {}
-    accuracy = "exact"
+    accuracy_key = "pricing.accuracy.exact"
     
     original_cache: dict[str, int] = {}
     compressed_cache: dict[str, int] = {}
@@ -43,18 +44,18 @@ def calculate_savings(
         tokens_saved = max(0, original_tokens - compressed_tokens)
 
         # input token price per million → per token
-        price_per_token = float(price_entry["input"]) / 1_000_000
+        price_per_token = price_entry["input"] / 1_000_000
         saved_usd = tokens_saved * price_per_token
 
         savings[model] = f"${saved_usd:.6f}"
 
         if model_accuracy != "exact":
-            accuracy = "estimated±10%"
+            accuracy_key = "pricing.accuracy.estimated"
 
     return SavingsResult(
         estimated_savings=savings,
-        pricing_accuracy=accuracy,
-        pricing_note=str(prices.get("_meta", {}).get("note", "")),
+        pricing_accuracy=t(accuracy_key),
+        pricing_note=meta.get("note", ""),
     )
 
 

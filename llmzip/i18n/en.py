@@ -60,5 +60,7 @@ STRINGS: dict[str, str] = {
     "config.invalid_ratio":             "DEFAULT_RATIO must be between 0.1 and 0.9, got: {value}",
     "config.invalid_compression_model": "COMPRESSION_MODEL must be 'bert-base' or 'xlm-roberta-large', got: {value}",
     "config.invalid_value":             "Invalid config value: {error}",
-    "config.error_prefix":              "\n❌ LLMZip config error:\n   {message}\n",
+    # pricing
+    "pricing.accuracy.exact":           "exact",
+    "pricing.accuracy.estimated":       "estimated±10%",
 }

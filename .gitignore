@@ -21,7 +21,12 @@ htmlcov/
 
 # Type checking
 .mypy_cache/
-.ruff_cache/
+# Temporary research and build files
+temp/
+.commit_msg.txt
+*.pdf
+
+/
 
 # llm-zip — never commit these
 .llmzip.config

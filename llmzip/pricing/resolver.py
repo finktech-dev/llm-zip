@@ -1,19 +1,21 @@
 import logging
 import threading
 import time
-from datetime import datetime, timezone
 
-from llmzip.pricing.fallback import FALLBACK_PRICES
+from llmzip.pricing.disk_cache import load as disk_load
+from llmzip.pricing.disk_cache import save as disk_save
+from llmzip.pricing.fallback import FALLBACK_META, FALLBACK_PRICES, PriceEntry
 from llmzip.pricing.fetcher import fetch_prices
 
 logger = logging.getLogger(__name__)
 
-_cache: dict[str, dict[str, float | str]] = {}
+_cache_prices: dict[str, PriceEntry] = {}
+_cache_meta: dict[str, str] = {}
 _cache_timestamp: float = 0.0
 _cache_ttl: int = 3600
 
 _last_fetch_attempt: float = 0.0
-_FETCH_COOLDOWN: float = 30.0  # seconds between retries if LiteLLM is down
+_FETCH_COOLDOWN: float = 30.0
 _fetch_lock = threading.Lock()
 
 
@@ -22,58 +24,53 @@ def configure(cache_ttl: int) -> None:
     _cache_ttl = cache_ttl
 
 
-def resolve_prices() -> dict[str, dict[str, float | str]]:
-    global _cache, _cache_timestamp, _last_fetch_attempt
+def resolve_prices() -> tuple[dict[str, PriceEntry], dict[str, str]]:
+    global _cache_prices, _cache_meta, _cache_timestamp, _last_fetch_attempt
 
     now = time.monotonic()
 
-    # valid cache — return directly without locking
-    if _cache and (now - _cache_timestamp) < _cache_ttl:
-        return _cache
+    if _cache_prices and (now - _cache_timestamp) < _cache_ttl:
+        return _cache_prices, _cache_meta
 
-    # cooldown active or fetch in progress
     if (now - _last_fetch_attempt) < _FETCH_COOLDOWN:
-        return _cache if _cache else _make_fallback()
+        return (_cache_prices, _cache_meta) if _cache_prices else (FALLBACK_PRICES, FALLBACK_META)
 
-    fetch_needed = False
     with _fetch_lock:
         now = time.monotonic()
-        # double-check if another thread updated it while waiting
-        if _cache and (now - _cache_timestamp) < _cache_ttl:
-            return _cache
-        
-        # double-check cooldown (another thread might have claimed the fetch)
+        if _cache_prices and (now - _cache_timestamp) < _cache_ttl:
+            return _cache_prices, _cache_meta
         if (now - _last_fetch_attempt) < _FETCH_COOLDOWN:
-            return _cache if _cache else _make_fallback()
-
-        # claim the fetch attempt and release the lock immediately
+            return (_cache_prices, _cache_meta) if _cache_prices else (FALLBACK_PRICES, FALLBACK_META)
         _last_fetch_attempt = now
-        fetch_needed = True
 
-    if fetch_needed:
-        # fetch outside the lock to prevent blocking other requests
-        fetched = fetch_prices()
-        
-        if fetched is not None:
-            with _fetch_lock:
-                _cache = fetched
-                _cache_timestamp = time.monotonic()
-                logger.debug("Prices refreshed from LiteLLM")
-                return _cache
+    disk = disk_load(_cache_ttl)
+    if disk is not None:
+        prices, meta = disk
+        with _fetch_lock:
+            _cache_prices = prices
+            _cache_meta = meta
+            _cache_timestamp = time.monotonic()
+        logger.debug("Prices loaded from disk cache")
+        return _cache_prices, _cache_meta
 
-    # fetch failed — use stale cache if available, else fallback
-    if _cache:
-        logger.warning("LiteLLM unavailable — serving stale cache")
-        return _cache
+    fetched = fetch_prices()
+    if fetched is not None:
+        prices, meta = fetched
+        disk_save(prices, meta)
+        with _fetch_lock:
+            _cache_prices = prices
+            _cache_meta = meta
+            _cache_timestamp = time.monotonic()
+        logger.debug("Prices refreshed from LiteLLM and written to disk")
+        return _cache_prices, _cache_meta
 
-    return _make_fallback()
+    if _cache_prices:
+        logger.warning("LiteLLM unavailable — serving stale RAM cache")
+        return _cache_prices, _cache_meta
 
+    stale = disk_load(ttl=86400 * 7)
+    if stale is not None:
+        logger.warning("LiteLLM unavailable — serving stale disk cache")
+        return stale
 
-def _make_fallback() -> dict[str, dict[str, float | str]]:
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    fallback_with_meta: dict[str, dict[str, float | str]] = dict(FALLBACK_PRICES)
-    fallback_with_meta["_meta"] = {
-        "note": f"Rates from llm-zip fallback as of {today} (LiteLLM unavailable)",
-        "source": "fallback",
-    }
-    return fallback_with_meta
+    return FALLBACK_PRICES, FALLBACK_META

@@ -6,6 +6,32 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.3.0] — 2026-06-11
+
+### Added
+- **Disk cache for pricing** (`llmzip/pricing/disk_cache.py`): LiteLLM prices now persist to `~/.llmzip/prices.json`. Configurable via `LLMZIP_CACHE_DIR` env var or `[storage] CACHE_DIR` in config. Falls back to cached data up to 7 days old if LiteLLM is unreachable.
+- **Offline-first tiktoken**: `TIKTOKEN_CACHE_DIR` is now set automatically on `token_counter` import. Docker images pre-download `cl100k_base` and `o200k_base` encodings at build time - no network calls at runtime.
+- **Batch BERT inference**: `LinguaAdapter.compress()` now passes all chunks in a single `compress_prompt(List[str])` call instead of looping. 3-5× latency reduction on large inputs.
+- **Proxied File Conversion**: In `split` mode, the lightweight API container now correctly forwards `/v1/compress/file` uploads to the `models` container via a new internal `/infer/convert_file` endpoint. This allows the API image to remain 100% free of heavy conversion dependencies.
+- **Docker overhaul**: Multi-stage builds (no compiler toolchain in runtime images), non-root `llmzip` user, stdlib Python healthchecks (no `curl`), Alpine-based API container (~50MB), CPU-only PyTorch for the models container (~800MB vs ~3GB previously).
+- **Test suite**: Added `test_api_v1`, `test_chunker_stress`, `test_i18n`, `test_negative_cases`, and `test_token_resilience` covering the new pricing architecture, i18n keys, and edge cases.
+
+### Fixed
+- **Startup Permissions**: Fixed a `PermissionError` crash in Docker by explicitly creating and assigning ownership of the `logs/` directory to the non-root user before switching contexts.
+- **Batch Token Precision**: Fixed a bug where `original_tokens` and `compressed_tokens` returned `None` in batch results; they are now correctly populated for both successful and skipped items.
+- **Robustness**: `count_tokens` now accepts `str | None` and no longer caches transient network errors - tiktoken retries work correctly after a connectivity failure.
+- **Concurrency**: Fixed race condition in `resolver.py` by removing the `fetch_needed` intermediary variable that allowed duplicate LiteLLM fetches under concurrent load.
+- **Batch Transparency** (v0.2.3): Added `skipped` and `warning` fields to `BatchResultItem` schema for full visibility into processing decisions.
+- **Correct Savings** (v0.2.3): Skipped compression paths now use the user-requested model for price estimation instead of the system default.
+- **I18n**: Completed pricing accuracy translation keys across all 5 languages.
+
+### Changed
+- **API Contracts**: `resolve_prices()` now returns `tuple[dict[str, PriceEntry], dict[str, str]]` - prices and metadata are cleanly separated. Breaking change for direct consumers of the pricing module.
+- **Fetcher**: `fetch_prices()` now returns the same `(prices, meta)` tuple to support strict typing.
+- **Pricing fallback**: Added `PriceEntry` TypedDict for strict typing. Updated fallback prices for GPT-5.x, Claude 4.x, Gemini 3.x, and DeepSeek V4 families (verified 2026-06-11).
+
+---
+
 ## [0.2.2] — 2026-06-09
 
 ### Added

@@ -1,7 +1,10 @@
 services:
   llmzip-api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.models
     container_name: llmzip-api
+    command: ["uvicorn", "llmzip.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
     volumes:
       - ./.llmzip.config:/app/.llmzip.config:ro
       - ./.llmzipignore:/app/.llmzipignore:ro
@@ -11,8 +14,12 @@ services:
       - "${LLMZIP_PORT:-8000}:8000"
     networks:
       - llmzip-internal
+    environment:
+      # Explicit override guarantees the tiktoken cache path even if the
+      # container is started with a custom env that drops inherited ENVs.
+      - TIKTOKEN_CACHE_DIR=/app/.tiktoken_cache
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/ready"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')\""]
       interval: 30s
       timeout: 10s
       retries: 3

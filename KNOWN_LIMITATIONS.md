@@ -72,4 +72,14 @@ This document lists known limitations of the current release, their impact, and 
 
 **Planned fix:** Optional audio support via `pip install llm-zip[audio]` is planned for v0.5.0, or earlier if there is user demand or a community contribution.
 
+---
+
+## `/v1/estimate` vs compression floor (all versions)
+
+**What it means:** The estimate endpoint calculates `estimated_compression_ratio` as a linear function of the requested ratio (`1 / ratio`). For example, `ratio=0.9` results in `1.11x`.
+
+**When it becomes a problem:** In practice, LLMLingua-2 plateaus at approximately 2x compression regardless of the requested ratio on very dense or already concise documents. Users might be surprised if `/v1/estimate` suggests a lower ratio than what is physically achievable by the model.
+
+**Workaround:** Treat the output of `/v1/estimate` as a theoretical upper bound for savings calculations, not as a guaranteed physical result of the compression process.
+
 

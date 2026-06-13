@@ -1,6 +1,7 @@
 import asyncio
 import importlib.metadata
 import logging
+import os
 from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -46,6 +47,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if config.rate_limit_enabled:
         limiter_module.set_limits(config.rate_limit_rpm, config.rate_limit_rpd)
         limiter.enabled = True
+
+    if config.cache_dir is not None:
+        os.environ.setdefault("LLMZIP_CACHE_DIR", str(config.cache_dir))
+        config.cache_dir.mkdir(parents=True, exist_ok=True)
 
     configure_pricing(config.pricing_cache_ttl)
 

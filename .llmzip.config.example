@@ -40,6 +40,11 @@ SCORER_TIMEOUT=30
 ; Seconds before re-fetching LiteLLM prices (0 = always fetch)
 CACHE_TTL=3600
 
+[storage]
+; Directory for disk caches (pricing, tiktoken encodings).
+; Defaults to ~/.llmzip — override for Docker or shared environments.
+; CACHE_DIR=/tmp/.llmzip
+
 [rate_limit]
 ; Set ENABLED=true to activate rate limiting
 ENABLED=false

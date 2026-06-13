@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-import pytest
 from llmzip.core.savings_calculator import calculate_savings, _build_model_list
 
 MOCK_PRICES = {
@@ -9,12 +8,12 @@ MOCK_PRICES = {
     "claude-haiku-4-5":     {"input": 1.00,  "output": 5.00},
     "gemini-2.5-flash-lite":{"input": 0.10,  "output": 0.40},
     "deepseek-v4-flash":    {"input": 0.07,  "output": 0.28},
-    "_meta": {"note": "test prices"},
 }
+MOCK_META = {"note": "test prices"}
 
 
-@patch("llmzip.core.savings_calculator.resolve_prices", return_value=MOCK_PRICES)
-def test_returns_savings_for_featured_models(mock_prices) -> None:
+@patch("llmzip.core.savings_calculator.resolve_prices", return_value=(MOCK_PRICES, MOCK_META))
+def test_returns_savings_for_featured_models(mock_resolve) -> None:
     result = calculate_savings(
         original_text="word " * 1000,
         compressed_text="word " * 200,
@@ -24,8 +23,8 @@ def test_returns_savings_for_featured_models(mock_prices) -> None:
     assert "claude-haiku-4-5" in result.estimated_savings
 
 
-@patch("llmzip.core.savings_calculator.resolve_prices", return_value=MOCK_PRICES)
-def test_savings_are_positive(mock_prices) -> None:
+@patch("llmzip.core.savings_calculator.resolve_prices", return_value=(MOCK_PRICES, MOCK_META))
+def test_savings_are_positive(mock_resolve) -> None:
     result = calculate_savings(
         original_text="word " * 1000,
         compressed_text="word " * 200,
@@ -36,8 +35,8 @@ def test_savings_are_positive(mock_prices) -> None:
         assert value >= 0, f"Negative saving for {model}"
 
 
-@patch("llmzip.core.savings_calculator.resolve_prices", return_value=MOCK_PRICES)
-def test_custom_default_model_included(mock_prices) -> None:
+@patch("llmzip.core.savings_calculator.resolve_prices", return_value=(MOCK_PRICES, MOCK_META))
+def test_custom_default_model_included(mock_resolve) -> None:
     result = calculate_savings(
         original_text="word " * 500,
         compressed_text="word " * 100,

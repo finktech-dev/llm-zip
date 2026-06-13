@@ -61,4 +61,7 @@ STRINGS: dict[str, str] = {
     "config.invalid_compression_model": "COMPRESSION_MODEL は 'bert-base' または 'xlm-roberta-large' でなければなりません。入力値：{value}",
     "config.invalid_value":             "無効な設定値：{error}",
     "config.error_prefix":              "\n❌ LLMZip 設定エラー：\n   {message}\n",
+    # pricing
+    "pricing.accuracy.exact":           "正確",
+    "pricing.accuracy.estimated":       "推定±10%",
 }

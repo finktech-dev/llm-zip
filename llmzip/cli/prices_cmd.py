@@ -2,6 +2,7 @@
 import typer
 
 from llmzip.i18n import t
+from llmzip.pricing.fallback import PriceEntry
 from llmzip.pricing.resolver import resolve_prices
 
 
@@ -30,25 +31,24 @@ def prices(
     ),
 ) -> None:
     """Show current model prices from LiteLLM (or fallback)."""
-    data = resolve_prices()
-    meta = data.get("_meta", {})
-    note = str(meta.get("note", "")) if isinstance(meta, dict) else ""
+    prices, meta = resolve_prices()
+    note = meta.get("note", "")
 
     if providers:
-        _print_providers(data)
+        _print_providers(prices)
         return
 
     selected_provider: str | None = provider
 
     if interactive and not provider:
-        selected_provider = _select_provider_interactive(data)
+        selected_provider = _select_provider_interactive(prices)
         if selected_provider == "__all__":
             selected_provider = None
 
-    _print_table(data, note, selected_provider, show_all)
+    _print_table(prices, note, selected_provider, show_all)
 
 
-def _print_providers(data: dict[str, dict[str, float | str]]) -> None:
+def _print_providers(data: dict[str, PriceEntry]) -> None:
     found = _extract_providers(data)
     typer.echo(f"\n{t('prices.providers_header')}:\n")
     for p in sorted(found):
@@ -56,7 +56,7 @@ def _print_providers(data: dict[str, dict[str, float | str]]) -> None:
     typer.echo("")
 
 
-def _print_table(data: dict[str, dict[str, float | str]], note: str, provider: str | None, show_all: bool) -> None:
+def _print_table(data: dict[str, PriceEntry], note: str, provider: str | None, show_all: bool) -> None:
     from rich.console import Console
     from rich.table import Table
 
@@ -81,8 +81,6 @@ def _print_table(data: dict[str, dict[str, float | str]], note: str, provider: s
 
     found = False
     for model, entry in sorted(data.items()):
-        if model == "_meta" or not isinstance(entry, dict):
-            continue
         if provider and not model.lower().startswith(provider.lower()):
             continue
         
@@ -94,8 +92,8 @@ def _print_table(data: dict[str, dict[str, float | str]], note: str, provider: s
 
         table.add_row(
             model,
-            f"{float(entry['input']):.4f}",
-            f"{float(entry['output']):.4f}"
+            f"{entry['input']:.4f}",
+            f"{entry['output']:.4f}"
         )
         found = True
 
@@ -107,17 +105,15 @@ def _print_table(data: dict[str, dict[str, float | str]], note: str, provider: s
     typer.echo("")
 
 
-def _extract_providers(data: dict[str, dict[str, float | str]]) -> list[str]:
+def _extract_providers(data: dict[str, PriceEntry]) -> list[str]:
     seen: set[str] = set()
     for model in data:
-        if model == "_meta":
-            continue
         prefix = model.split(".")[0] if "." in model else model.split("/")[0]
         seen.add(prefix.lower())
     return sorted(seen)
 
 
-def _select_provider_interactive(data: dict[str, dict[str, float | str]]) -> str:
+def _select_provider_interactive(data: dict[str, PriceEntry]) -> str:
     try:
         import questionary
     except ImportError as e:

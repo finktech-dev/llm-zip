@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -40,11 +42,15 @@ class BatchRequest(BaseModel):
 
 class BatchResultItem(BaseModel):
     index: int
-    status: str           # "ok" | "error"
+    status: Literal["ok", "error"]
     compressed: str | None = None
+    original_tokens: int | None = None
+    compressed_tokens: int | None = None
     compression_ratio: float | None = None
     preservation_score: float | None = None
     estimated_savings: dict[str, str] | None = None
+    warning: str | None = None
+    skipped: bool = False
     reason: str | None = None
 
 

@@ -4,18 +4,15 @@ llmlingua>=0.2.2
 # preservation score
 sentence-transformers>=3.0.0
 
-# file conversion (optional feature)
+# file conversion (incluye audio, OCR, etc.)
 markitdown[all]>=0.1.0
 
-# api
+# api (models_server expone su propio FastAPI app)
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
 pydantic>=2.0.0
 python-multipart>=0.0.9
 slowapi>=0.1.9
-
-# cli
-typer>=0.12.0
 
 # token counting
 tiktoken>=0.7.0
@@ -23,7 +20,7 @@ tiktoken>=0.7.0
 # http
 httpx>=0.27.0
 
-# interactive cli
+# interactive cli (si el CLI corre también desde este container)
 questionary>=2.0.0
 
 # config

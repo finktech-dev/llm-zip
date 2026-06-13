@@ -1,8 +1,18 @@
-# Fallback prices used when LiteLLM fetch fails.
+from typing import TypedDict
+
+class PriceEntry(TypedDict):
+    input: float
+    output: float
+
 # All values are USD per million tokens (input / output).
 # PRICES_LAST_UPDATED = "2026-06-06"
 
-FALLBACK_PRICES: dict[str, dict[str, float | str]] = {
+FALLBACK_META: dict[str, str] = {
+    "note": "Rates from llm-zip fallback (LiteLLM unavailable)",
+    "source": "fallback",
+}
+
+FALLBACK_PRICES: dict[str, PriceEntry] = {
     # OpenAI
     "gpt-5.5":          {"input": 5.00,  "output": 30.00},
     "gpt-5.4":          {"input": 2.50,  "output": 15.00},

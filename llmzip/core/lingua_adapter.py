@@ -247,33 +247,29 @@ class LinguaAdapter:
 
         try:
             chunks, truncation_warned = self._split_into_chunks(text, target_model)
-            compressed_parts: list[str] = []
-            total_compressed_tokens = 0
 
-            # PromptCompressor (LLMLingua-2) is thread-safe for inference on CPU
-            # because PyTorch forward passes do not mutate model state.
-            for chunk in chunks:
-                res = self._compressor.compress_prompt(
-                    chunk,
-                    rate=ratio,
-                    force_tokens=["\n"],
-                )
-                comp_text = res["compressed_prompt"]
-                compressed_parts.append(comp_text)
-                c_tokens, _ = count_tokens(comp_text, target_model)
-                total_compressed_tokens += c_tokens
+            res = self._compressor.compress_prompt(
+                chunks,
+                rate=ratio,
+                force_tokens=["\n"],
+            )
+
+            compressed_parts: list[str] = res.get("compressed_prompt_list") or []
+            if not compressed_parts:
+                compressed_parts = [res["compressed_prompt"]]
 
             full_compressed = "\n".join(compressed_parts)
+            compressed_tokens, _ = count_tokens(full_compressed, target_model)
             actual_ratio = (
-                original_tokens / total_compressed_tokens
-                if total_compressed_tokens > 0
+                original_tokens / compressed_tokens
+                if compressed_tokens > 0
                 else 1.0
             )
 
             return CompressionResult(
                 compressed_text=full_compressed,
                 original_tokens=original_tokens,
-                compressed_tokens=total_compressed_tokens,
+                compressed_tokens=compressed_tokens,
                 compression_ratio=round(actual_ratio, 2),
                 warning=_WARNING_CHUNK_TRUNCATED if truncation_warned else None,
             )

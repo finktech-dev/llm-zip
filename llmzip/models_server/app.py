@@ -5,11 +5,12 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel
 
 from llmzip.core.lingua_adapter import LinguaAdapter
 from llmzip.core.semantic_scorer import SemanticScorer
+from llmzip.conversion.file_converter import convert_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,11 @@ class CompressRequest(BaseModel):
 class ScoreRequest(BaseModel):
     original: str
     compressed: str
+
+class ConvertFileResponse(BaseModel):
+    text: str
+    source_format: str
+    warning: str | None = None
 
 class HealthResponse(BaseModel):
     status: str
@@ -110,3 +116,20 @@ def infer_score(req: ScoreRequest) -> dict[str, float | None]:
     except Exception as e:
         logger.error(f"Scoring error: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+@app.post("/infer/convert_file", response_model=ConvertFileResponse)
+async def infer_convert_file(file: UploadFile = File(...)) -> ConvertFileResponse:
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty file")
+    try:
+        # file_converter.convert_bytes writes to a temp file and uses markitdown
+        result = convert_bytes(content, file.filename or "unknown.txt")
+        return ConvertFileResponse(
+            text=result.text,
+            source_format=result.source_format,
+            warning=result.warning
+        )
+    except Exception as e:
+        logger.error(f"File conversion error: {e}")
+        raise HTTPException(status_code=422, detail=str(e)) from e

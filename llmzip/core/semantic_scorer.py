@@ -1,10 +1,11 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-import numpy as np
-from sentence_transformers import SentenceTransformer
+if TYPE_CHECKING:
+    import numpy as np
+    from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class SemanticScorer:
         self._timeout = timeout
 
     def load(self) -> None:
+        from sentence_transformers import SentenceTransformer
         logger.info("Loading semantic scorer: %s", self._model_id)
         self._model = SentenceTransformer(
             self._model_id, cache_folder=str(self._models_dir)
@@ -55,7 +57,8 @@ class SemanticScorer:
         similarity = float(_cosine_similarity(original_embedding, compressed_embedding))
         return round(max(0.0, min(1.0, similarity)), 4)
 
-    def _embed(self, text: str) -> np.ndarray:
+    def _embed(self, text: str) -> "np.ndarray":
+        import numpy as np
         chunks = _chunk_text(text, CHUNK_SIZE, CHUNK_OVERLAP)
         if not chunks:
             chunks = [text]
@@ -79,7 +82,8 @@ def _chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:
     return chunks
 
 
-def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
+def _cosine_similarity(a: "np.ndarray", b: "np.ndarray") -> float:
+    import numpy as np
     norm_a = np.linalg.norm(a)
     norm_b = np.linalg.norm(b)
     if norm_a == 0 or norm_b == 0:

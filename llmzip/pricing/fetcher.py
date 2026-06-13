@@ -12,11 +12,13 @@ LITELLM_PRICES_URL = (
 _TIMEOUT_SECONDS = 5.0
 
 
-def fetch_prices() -> dict[str, dict[str, float | str]] | None:
+from llmzip.pricing.fallback import PriceEntry
+
+
+def fetch_prices() -> tuple[dict[str, PriceEntry], dict[str, str]] | None:
     """
     Fetches current model prices from LiteLLM's public JSON.
-    Returns a normalized dict {model_name: {input: float, output: float}}
-    or None if the fetch fails.
+    Returns (prices, meta) or None if the fetch fails.
     """
     try:
         response = httpx.get(LITELLM_PRICES_URL, timeout=_TIMEOUT_SECONDS)
@@ -28,8 +30,8 @@ def fetch_prices() -> dict[str, dict[str, float | str]] | None:
         return None
 
 
-def _normalize(raw: dict[str, object]) -> dict[str, dict[str, float | str]]:
-    prices: dict[str, dict[str, float | str]] = {}
+def _normalize(raw: dict[str, object]) -> tuple[dict[str, PriceEntry], dict[str, str]]:
+    prices: dict[str, PriceEntry] = {}
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     for model, data in raw.items():
@@ -45,8 +47,8 @@ def _normalize(raw: dict[str, object]) -> dict[str, dict[str, float | str]]:
             "output": float(output_price) * 1_000_000,
         }
 
-    prices["_meta"] = {
+    meta = {
         "note": f"Rates from LiteLLM as of {today}",
         "source": "litellm",
     }
-    return prices
+    return prices, meta

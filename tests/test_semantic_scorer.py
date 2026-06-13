@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 from llmzip.core.semantic_scorer import _chunk_text, _cosine_similarity
 
@@ -25,17 +24,20 @@ def test_chunk_text_overlap_produces_shared_words() -> None:
 
 
 def test_cosine_similarity_identical_vectors() -> None:
+    import numpy as np
     v = np.array([1.0, 2.0, 3.0])
     assert _cosine_similarity(v, v) == pytest.approx(1.0, abs=1e-6)
 
 
 def test_cosine_similarity_orthogonal_vectors() -> None:
+    import numpy as np
     a = np.array([1.0, 0.0])
     b = np.array([0.0, 1.0])
     assert _cosine_similarity(a, b) == pytest.approx(0.0, abs=1e-6)
 
 
 def test_cosine_similarity_zero_vector_returns_zero() -> None:
+    import numpy as np
     a = np.array([0.0, 0.0])
     b = np.array([1.0, 2.0])
     assert _cosine_similarity(a, b) == 0.0

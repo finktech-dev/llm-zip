@@ -16,7 +16,15 @@ build/
 .gitignore
 .llmzip.config
 .llmzipignore.local
+# Ignore all markdown files except README.md which is needed for package install
 *.md
+!README.md
 tests/
 docker/
 scripts/
+logs/
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+*.log
+.DS_Store

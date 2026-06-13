@@ -14,8 +14,9 @@ services:
       - COMPRESSION_MODEL=${COMPRESSION_MODEL:-bert-base}
       - SCORER_MODEL=${SCORER_MODEL:-paraphrase-multilingual-MiniLM-L12-v2}
       - SCORER_TIMEOUT=${SCORER_TIMEOUT:-30}
+      - TIKTOKEN_CACHE_DIR=/app/.tiktoken_cache
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/ready"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/ready')\""]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -46,8 +47,9 @@ services:
     environment:
       - DEPLOY_MODE=split
       - MODELS_URL=http://llmzip-models:8001
+      - TIKTOKEN_CACHE_DIR=/app/.tiktoken_cache
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health/ready"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')\""]
       interval: 15s
       timeout: 10s
       retries: 5

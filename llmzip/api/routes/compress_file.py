@@ -80,31 +80,51 @@ async def compress_file(
     if not content:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp_path = Path(tmp.name)
-    try:
-        tmp_path.write_bytes(content)
-        conversion = convert(tmp_path)
-    except RuntimeError as exc:
-        logger.warning(
-            "compress error",
-            extra={
-                "event": "compress_error",
-                "error": "conversion_failed",
-                "status_code": 422,
-            },
-        )
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-    finally:
-        tmp_path.unlink(missing_ok=True)
+    conversion_warning = None
+    if config.deploy_mode == "split":
+        import httpx
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                res = await client.post(
+                    f"{config.models_url}/infer/convert_file",
+                    files={"file": (file.filename, content, file.content_type)}
+                )
+            if res.status_code != 200:
+                logger.warning("compress error", extra={"event": "compress_error", "error": "remote_conversion_failed", "status_code": res.status_code})
+                raise HTTPException(status_code=res.status_code, detail=res.text)
+            
+            data = res.json()
+            text = data["text"]
+            conversion_warning = data.get("warning")
+        except httpx.RequestError as e:
+            raise HTTPException(status_code=503, detail=f"Failed to connect to models server: {e}")
+    else:
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+            tmp_path = Path(tmp.name)
+        try:
+            tmp_path.write_bytes(content)
+            conversion = convert(tmp_path)
+            text = conversion.text
+            conversion_warning = conversion.warning
+        except RuntimeError as exc:
+            logger.warning(
+                "compress error",
+                extra={
+                    "event": "compress_error",
+                    "error": "conversion_failed",
+                    "status_code": 422,
+                },
+            )
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        finally:
+            tmp_path.unlink(missing_ok=True)
 
-    if not conversion.text or len(conversion.text.strip()) < 10:
+    if not text or len(text.strip()) < 10:
         raise HTTPException(
             status_code=422,
             detail="File conversion produced no extractable text.",
         )
 
-    text = conversion.text
     original_tokens, accuracy = count_tokens(text, model)
 
     if original_tokens > config.max_tokens:
@@ -127,7 +147,7 @@ async def compress_file(
         )
 
     if original_tokens < config.min_tokens_to_compress:
-        savings = calculate_savings(text, text, config.default_model)
+        savings = calculate_savings(text, text, model)
         elapsed_ms = int((time.perf_counter() - start) * 1000)
         logger.info(
             "compress ok",
@@ -151,7 +171,7 @@ async def compress_file(
             pricing_accuracy=accuracy,
             pricing_note=savings.pricing_note,
             skipped=True,
-            warning=conversion.warning,
+            warning=conversion_warning,
         )
 
     result = lingua.compress(text, ratio, model)
@@ -171,7 +191,7 @@ async def compress_file(
         },
     )
 
-    warning = result.warning or conversion.warning
+    warning = result.warning or conversion_warning
     if accuracy != "exact":
         msg = f"Model '{model}' token count is estimated (±10%). Exact counting is supported for OpenAI models (gpt-*, o1, o3, o4)."
         warning = f"{warning}. {msg}" if warning else msg

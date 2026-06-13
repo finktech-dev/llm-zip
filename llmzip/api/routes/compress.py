@@ -58,7 +58,7 @@ def compress(
         )
 
     if original_tokens < config.min_tokens_to_compress:
-        savings = calculate_savings(req.text, req.text, config.default_model)
+        savings = calculate_savings(req.text, req.text, model)
         elapsed_ms = int((time.perf_counter() - start) * 1000)
         logger.info(
             "compress ok",
@@ -148,14 +148,17 @@ def compress_batch(
                 )
 
             if original_tokens < config.min_tokens_to_compress:
-                savings = calculate_savings(item.text, item.text, config.default_model)
+                savings = calculate_savings(item.text, item.text, model)
                 return BatchResultItem(
                     index=index,
                     status="ok",
                     compressed=item.text,
+                    original_tokens=original_tokens,
+                    compressed_tokens=original_tokens,
                     compression_ratio=1.0,
                     preservation_score=1.0,
                     estimated_savings=savings.estimated_savings,
+                    skipped=True,
                     reason="skipped_below_threshold",
                 )
 
@@ -167,9 +170,12 @@ def compress_batch(
                 index=index,
                 status="ok",
                 compressed=compression.compressed_text,
+                original_tokens=compression.original_tokens,
+                compressed_tokens=compression.compressed_tokens,
                 compression_ratio=compression.compression_ratio,
                 preservation_score=score,
                 estimated_savings=savings.estimated_savings,
+                warning=compression.warning,
             )
         except Exception as exc:
             logger.warning("Batch item %d failed: %s", index, exc)

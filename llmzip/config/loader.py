@@ -30,6 +30,7 @@ class AppConfig:
     scorer_model: str
     scorer_timeout: int
     pricing_cache_ttl: int
+    cache_dir: Path | None
     rate_limit_enabled: bool
     rate_limit_rpm: int
     rate_limit_rpd: int
@@ -99,6 +100,12 @@ def load() -> AppConfig:
             ),
             scorer_timeout=int(parser.get("compression", "SCORER_TIMEOUT", fallback="30")),
             pricing_cache_ttl=int(parser.get("pricing", "CACHE_TTL", fallback="3600")),
+            cache_dir=Path(
+                os.environ.get(
+                    "LLMZIP_CACHE_DIR",
+                    parser.get("storage", "CACHE_DIR", fallback=""),
+                )
+            ) if os.environ.get("LLMZIP_CACHE_DIR") or parser.get("storage", "CACHE_DIR", fallback="") else None,
             rate_limit_enabled=parser.get("rate_limit", "ENABLED", fallback="false").lower()
             == "true",
             rate_limit_rpm=int(
