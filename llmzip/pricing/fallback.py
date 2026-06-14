@@ -1,5 +1,6 @@
 from typing import TypedDict
 
+
 class PriceEntry(TypedDict):
     input: float
     output: float

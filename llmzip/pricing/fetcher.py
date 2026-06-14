@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 
 import httpx
 
+from llmzip.pricing.fallback import PriceEntry
+
 logger = logging.getLogger(__name__)
 
 LITELLM_PRICES_URL = (
@@ -10,9 +12,6 @@ LITELLM_PRICES_URL = (
     "model_prices_and_context_window.json"
 )
 _TIMEOUT_SECONDS = 5.0
-
-
-from llmzip.pricing.fallback import PriceEntry
 
 
 def fetch_prices() -> tuple[dict[str, PriceEntry], dict[str, str]] | None:

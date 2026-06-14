@@ -5,12 +5,12 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
+from llmzip.conversion.file_converter import convert_bytes
 from llmzip.core.lingua_adapter import LinguaAdapter
 from llmzip.core.semantic_scorer import SemanticScorer
-from llmzip.conversion.file_converter import convert_bytes
 
 logger = logging.getLogger(__name__)
 

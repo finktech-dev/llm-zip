@@ -97,7 +97,7 @@ async def compress_file(
             text = data["text"]
             conversion_warning = data.get("warning")
         except httpx.RequestError as e:
-            raise HTTPException(status_code=503, detail=f"Failed to connect to models server: {e}")
+            raise HTTPException(status_code=503, detail=f"Failed to connect to models server: {e}") from e
     else:
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             tmp_path = Path(tmp.name)
