@@ -99,6 +99,30 @@ def compress(
     raw = _read_input(source)
     text = _maybe_convert(raw, source, config)
 
+    from llmzip.core.ignore import should_skip
+    filename = str(source) if source else None
+    if should_skip(text, filename):
+        if not json_output:
+            typer.echo("⚠ Skipped — matched .llmzipignore rule.", err=True)
+        else:
+            original_tokens, accuracy = count_tokens(text, model)
+            payload = {
+                "compressed": text,
+                "original_tokens": original_tokens,
+                "compressed_tokens": original_tokens,
+                "compression_ratio": 1.0,
+                "preservation_score": 1.0,
+                "estimated_savings": {},
+                "pricing_accuracy": accuracy,
+                "pricing_note": "",
+                "skipped": True,
+                "warning": "Skipped by ignore rules.",
+            }
+            _write_output(json.dumps(payload, indent=2), output)
+            raise typer.Exit(code=0)
+        _write_output(text, output)
+        raise typer.Exit(code=0)
+
     original_tokens, accuracy = count_tokens(text, model)
 
     if original_tokens > config.max_tokens:

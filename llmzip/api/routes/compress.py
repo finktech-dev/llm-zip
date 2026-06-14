@@ -15,6 +15,7 @@ from llmzip.api.schemas import (
     CompressResponse,
 )
 from llmzip.config.loader import AppConfig
+from llmzip.core.ignore import should_skip
 from llmzip.core.protocols import Compressor, Scorer
 from llmzip.core.savings_calculator import calculate_savings
 from llmzip.core.token_counter import count_tokens
@@ -35,6 +36,34 @@ def compress(
 ) -> CompressResponse:
     start = time.perf_counter()
     model = req.model or config.default_model
+
+    if should_skip(req.text):
+        original_tokens, _ = count_tokens(req.text, model)
+        elapsed_ms = int((time.perf_counter() - start) * 1000)
+        logger.info(
+            "compress ok",
+            extra={
+                "event": "compress_ok",
+                "tokens_in": original_tokens,
+                "tokens_out": original_tokens,
+                "ratio": 1.0,
+                "model": model,
+                "elapsed_ms": elapsed_ms,
+                "skipped": True,
+            },
+        )
+        return CompressResponse(
+            compressed=req.text,
+            original_tokens=original_tokens,
+            compressed_tokens=original_tokens,
+            compression_ratio=1.0,
+            preservation_score=1.0,
+            estimated_savings={},
+            pricing_accuracy="exact",
+            pricing_note="",
+            skipped=True,
+            warning="Skipped by ignore rules.",
+        )
 
     original_tokens, accuracy = count_tokens(req.text, model)
 
@@ -140,6 +169,23 @@ def compress_batch(
     def _process(index: int, item: BatchItem) -> BatchResultItem:
         try:
             model = item.model or config.default_model
+
+            if should_skip(item.text):
+                original_tokens, _ = count_tokens(item.text, model)
+                return BatchResultItem(
+                    index=index,
+                    status="ok",
+                    compressed=item.text,
+                    original_tokens=original_tokens,
+                    compressed_tokens=original_tokens,
+                    compression_ratio=1.0,
+                    preservation_score=1.0,
+                    estimated_savings={},
+                    skipped=True,
+                    warning="Skipped by ignore rules.",
+                    reason="skipped_by_ignore",
+                )
+
             original_tokens, accuracy = count_tokens(item.text, model)
 
             if original_tokens > config.max_tokens:

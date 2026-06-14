@@ -59,7 +59,6 @@ def test_convert_returns_warning_on_empty_text(mock_check: typing.Any, tmp_path)
 
 
 def test_markitdown_unavailable_raises_runtime_error() -> None:
-    with patch.dict("sys.modules", {"markitdown": None}):
-        with pytest.raises(RuntimeError, match="MarkItDown is not installed"):
-            from llmzip.conversion.file_converter import _assert_markitdown_available
-            _assert_markitdown_available()
+    with patch.dict("sys.modules", {"markitdown": None}), pytest.raises(RuntimeError, match="MarkItDown is not installed"):
+        from llmzip.conversion.file_converter import _assert_markitdown_available
+        _assert_markitdown_available()

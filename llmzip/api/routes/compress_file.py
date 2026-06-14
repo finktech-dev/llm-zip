@@ -125,6 +125,36 @@ async def compress_file(
             detail="File conversion produced no extractable text.",
         )
 
+    from llmzip.core.ignore import should_skip
+    if should_skip(text, file.filename):
+        original_tokens, _ = count_tokens(text, model)
+        elapsed_ms = int((time.perf_counter() - start) * 1000)
+        logger.info(
+            "compress_file ok",
+            extra={
+                "event": "compress_file_ok",
+                "filename": file.filename,
+                "tokens_in": original_tokens,
+                "tokens_out": original_tokens,
+                "ratio": 1.0,
+                "model": model,
+                "elapsed_ms": elapsed_ms,
+                "skipped": True,
+            },
+        )
+        return CompressResponse(
+            compressed=text,
+            original_tokens=original_tokens,
+            compressed_tokens=original_tokens,
+            compression_ratio=1.0,
+            preservation_score=1.0,
+            estimated_savings={},
+            pricing_accuracy="exact",
+            pricing_note="",
+            skipped=True,
+            warning="Skipped by ignore rules.",
+        )
+
     original_tokens, accuracy = count_tokens(text, model)
 
     if original_tokens > config.max_tokens:

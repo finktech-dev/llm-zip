@@ -1,4 +1,3 @@
-import typing
 """
 Unit tests for LinguaAdapter._split_into_chunks — sub-sentence fallback (v0.2.2).
 
@@ -10,6 +9,8 @@ They cover:
   - Degenerate inputs: empty text, single newlines, blank paragraphs
   - truncation_warned propagation across mixed content
 """
+
+import typing
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -169,10 +170,10 @@ class TestWarningKey:
             "compressed_prompt": "short"
         }
 
-        with patch.object(adapter, "_split_into_chunks", return_value=(["chunk"], True)):
-            with patch("llmzip.core.lingua_adapter.count_tokens", side_effect=fake_count_tokens):
-                result = adapter.compress(
-                    text="This single sentence is definitely too long to fit in three tokens.",
+        with patch.object(adapter, "_split_into_chunks", return_value=(["chunk"], True)), \
+             patch("llmzip.core.lingua_adapter.count_tokens", side_effect=fake_count_tokens):
+            result = adapter.compress(
+                text="This single sentence is definitely too long to fit in three tokens.",
                     ratio=0.5,
                     target_model="gpt-4o-mini",
                 )
