@@ -1,9 +1,10 @@
-import typing
 import io
+import typing
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+
 
 @pytest.fixture
 def client() -> typing.Generator[typing.Any, None, None]:
@@ -96,9 +97,20 @@ def test_health_endpoints(client: typing.Any) -> None:
 
 @patch("llmzip.conversion.file_converter.convert")
 @patch("llmzip.api.routes.compress_file.count_tokens")
-def test_compress_file_mocked(mock_count: typing.Any, mock_convert, client: typing.Any) -> None:  # type: ignore
-    mock_convert.return_value = MagicMock(text="extracted content", warning=None)
-    mock_count.return_value = (10, "exact")
+def test_compress_file_mocked(mock_count: typing.Any, mock_convert: typing.Any, client: typing.Any) -> None:  # type: ignore
+    # Provide a text long enough that compression isn't skipped
+    long_text = "extracted content " * 100
+    mock_convert.return_value = MagicMock(text=long_text, warning=None)
+    mock_count.return_value = (1000, "exact")
+    
+    # Configure lingua mock to return a valid CompressionResult
+    client.app.state.lingua.compress.return_value = MagicMock(
+        compressed_text="compressed",
+        original_tokens=1000,
+        compressed_tokens=500,
+        compression_ratio=2.0,
+        warning=None
+    )
     
     file_content = b"fake file content"
     file = io.BytesIO(file_content)
@@ -110,6 +122,7 @@ def test_compress_file_mocked(mock_count: typing.Any, mock_convert, client: typi
     )
     
     assert res.status_code == 200
+    assert mock_convert.called
     data = res.json()
-    assert data["skipped"] is True
-    assert data["compressed"] == "extracted content"
+    assert data["skipped"] is False
+    assert data["compressed"] == "compressed"
