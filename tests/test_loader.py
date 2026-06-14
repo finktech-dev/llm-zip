@@ -1,12 +1,12 @@
+import typing
 import configparser
+
 import pytest
-from unittest.mock import patch
-from pathlib import Path
 
-from llmzip.config.loader import _validate_required, AppConfig
+from llmzip.config.loader import _validate_required
 
 
-def _make_parser(overrides: dict | None = None) -> configparser.ConfigParser:
+def _make_parser(overrides: dict | None = None) -> configparser.ConfigParser:  # type: ignore
     parser = configparser.ConfigParser()
     parser.read_dict({
         "server": {
@@ -40,7 +40,7 @@ def test_validate_required_passes_with_valid_config() -> None:
     _validate_required(parser)  # should not raise or exit
 
 
-def test_validate_required_fails_on_missing_max_tokens(capsys) -> None:
+def test_validate_required_fails_on_missing_max_tokens(capsys) -> None:  # type: ignore
     parser = _make_parser({"server": {"MAX_TOKENS": ""}})
     with pytest.raises(SystemExit):
         _validate_required(parser)
@@ -48,7 +48,7 @@ def test_validate_required_fails_on_missing_max_tokens(capsys) -> None:
     assert "MAX_TOKENS" in captured.err
 
 
-def test_validate_required_fails_on_missing_default_model(capsys) -> None:
+def test_validate_required_fails_on_missing_default_model(capsys) -> None:  # type: ignore
     parser = _make_parser({"compression": {"DEFAULT_MODEL": ""}})
     with pytest.raises(SystemExit):
         _validate_required(parser)
@@ -56,7 +56,7 @@ def test_validate_required_fails_on_missing_default_model(capsys) -> None:
     assert "DEFAULT_MODEL" in captured.err
 
 
-def test_load_fails_when_config_file_missing(tmp_path, monkeypatch, capsys) -> None:
+def test_load_fails_when_config_file_missing(tmp_path, monkeypatch, capsys) -> None:  # type: ignore
     monkeypatch.chdir(tmp_path)
     from llmzip.config import loader
     with pytest.raises(SystemExit):

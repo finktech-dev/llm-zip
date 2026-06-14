@@ -1,11 +1,13 @@
+import typing
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 # Mark all tests in this module as integration
 pytestmark = pytest.mark.integration
 
 # Mock load before importing create_app to avoid actual config reading at module level
-from llmzip.config.loader import AppConfig
+from llmzip.config.loader import AppConfig  # noqa: E402
 
 MOCK_CONFIG_BASE = {
     "port": 8000,
@@ -32,84 +34,91 @@ MOCK_CONFIG_BASE = {
 }
 
 @pytest.fixture
-def mock_load():
+def mock_load() -> typing.Generator[typing.Any, None, None]:
     with patch("llmzip.api.app.load") as m:
-        m.return_value = AppConfig(**MOCK_CONFIG_BASE)
+        m.return_value = AppConfig(**MOCK_CONFIG_BASE)  # type: ignore
         yield m
 
 @pytest.fixture(autouse=True)
-def reset_limiter_storage():
+def reset_limiter_storage() -> typing.Generator[typing.Any, None, None]:  # type: ignore
     from llmzip.api.limiter import limiter
     limiter.limiter.storage.reset()
     # Ensure it's disabled by default between tests
     limiter.enabled = False
 
 @pytest.fixture
-def client(mock_load):
+def client(mock_load: typing.Any) -> typing.Generator[typing.Any, None, None]:
     # Mocking external dependencies in app.py
     with patch("llmzip.api.app.LinguaAdapter"), \
          patch("llmzip.api.app.SemanticScorer"), \
          patch("llmzip.api.app.set_models_loaded"):
-        from llmzip.api.app import create_app
         from fastapi.testclient import TestClient
+
+        from llmzip.api.app import create_app
         app = create_app()
         with TestClient(app) as c:
             yield c
 
-def test_auth_disabled_allows_all(mock_load):
-    from llmzip.api.app import create_app
+def test_auth_disabled_allows_all(mock_load: typing.Any) -> None:
     from fastapi.testclient import TestClient
+
+    from llmzip.api.app import create_app
     app = create_app()
     with TestClient(app) as client:
         response = client.get("/v1/models")
         assert response.status_code == 200
 
-def test_auth_enabled_requires_header(mock_load):
-    cfg = AppConfig(**MOCK_CONFIG_BASE)
+def test_auth_enabled_requires_header(mock_load: typing.Any) -> None:
+    cfg = AppConfig(**MOCK_CONFIG_BASE)  # type: ignore
     cfg.api_key = "secret-key"
     mock_load.return_value = cfg
     
-    from llmzip.api.app import create_app
     from fastapi.testclient import TestClient
+
+    from llmzip.api.app import create_app
     app = create_app()
     with TestClient(app) as client:
         response = client.get("/v1/models")
         assert response.status_code == 401
 
-def test_auth_enabled_valid_token(mock_load):
-    cfg = AppConfig(**MOCK_CONFIG_BASE)
+def test_auth_enabled_valid_token(mock_load: typing.Any) -> None:
+    cfg = AppConfig(**MOCK_CONFIG_BASE)  # type: ignore
     cfg.api_key = "secret-key"
     mock_load.return_value = cfg
     
-    from llmzip.api.app import create_app
     from fastapi.testclient import TestClient
+
+    from llmzip.api.app import create_app
     app = create_app()
     with TestClient(app) as client:
         response = client.get("/v1/models", headers={"Authorization": "Bearer secret-key"})
         assert response.status_code == 200
 
-def test_health_always_public(mock_load):
-    cfg = AppConfig(**MOCK_CONFIG_BASE)
+def test_health_always_public(mock_load: typing.Any) -> None:
+    cfg = AppConfig(**MOCK_CONFIG_BASE)  # type: ignore
     cfg.api_key = "secret-key"
     mock_load.return_value = cfg
     
-    from llmzip.api.app import create_app
     from fastapi.testclient import TestClient
+
+    from llmzip.api.app import create_app
     app = create_app()
     with TestClient(app) as client:
         response = client.get("/health")
         assert response.status_code == 200
 
-def test_rate_limiting(mock_load):
-    cfg = AppConfig(**MOCK_CONFIG_BASE)
+def test_rate_limiting(mock_load: typing.Any) -> None:
+    cfg = AppConfig(**MOCK_CONFIG_BASE)  # type: ignore
     cfg.rate_limit_enabled = True
     cfg.rate_limit_rpm = 2 # Low limit for testing
     mock_load.return_value = cfg
     
-    from llmzip.api.app import create_app, app as global_app
-    from llmzip.core.lingua_adapter import CompressionResult
     from fastapi.testclient import TestClient
+
     from llmzip.api import limiter as limiter_module
+    from llmzip.api.app import app as global_app
+    from llmzip.api.app import create_app
+    from llmzip.core.lingua_adapter import CompressionResult
     
     global_app.state.config = cfg
     

@@ -1,3 +1,4 @@
+import typing
 """
 Unit tests for LinguaAdapter._split_into_chunks — sub-sentence fallback (v0.2.2).
 
@@ -9,9 +10,10 @@ They cover:
   - Degenerate inputs: empty text, single newlines, blank paragraphs
   - truncation_warned propagation across mixed content
 """
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from llmzip.core.lingua_adapter import LinguaAdapter
 
@@ -30,7 +32,7 @@ def fake_count_tokens(text: str, model: str) -> tuple[int, str]:
 
 
 @pytest.fixture(autouse=True)
-def patch_count_tokens():
+def patch_count_tokens() -> typing.Generator[typing.Any, None, None]:
     with patch("llmzip.core.lingua_adapter.count_tokens", side_effect=fake_count_tokens):
         yield
 
@@ -40,7 +42,7 @@ def patch_count_tokens():
 # ---------------------------------------------------------------------------
 
 class TestParagraphChunking:
-    def test_single_short_paragraph_stays_as_one_chunk(self):
+    def test_single_short_paragraph_stays_as_one_chunk(self) -> None:
         adapter = make_adapter(chunk_size=20)
         text = "This is a short paragraph with only a few words."
         chunks, warned = adapter._split_into_chunks(text, "gpt-4o-mini")
@@ -48,14 +50,14 @@ class TestParagraphChunking:
         assert chunks[0] == text
         assert warned is False
 
-    def test_two_short_paragraphs_fit_in_one_chunk(self):
+    def test_two_short_paragraphs_fit_in_one_chunk(self) -> None:
         adapter = make_adapter(chunk_size=20)
         text = "First paragraph here.\n\nSecond paragraph here."
         chunks, warned = adapter._split_into_chunks(text, "gpt-4o-mini")
         assert len(chunks) == 1
         assert warned is False
 
-    def test_two_paragraphs_too_large_split_into_two_chunks(self):
+    def test_two_paragraphs_too_large_split_into_two_chunks(self) -> None:
         adapter = make_adapter(chunk_size=5)
         # Each paragraph is 6 words — exceeds chunk_size alone.
         # Sentence fallback kicks in; each sentence (6 tokens) still exceeds chunk_size=5
@@ -67,13 +69,13 @@ class TestParagraphChunking:
         assert len(chunks) >= 2
         assert warned is False  # sentences themselves exceed chunk_size=5
 
-    def test_empty_text_returns_empty_chunks(self):
+    def test_empty_text_returns_empty_chunks(self) -> None:
         adapter = make_adapter(chunk_size=10)
         chunks, warned = adapter._split_into_chunks("", "gpt-4o-mini")
         assert chunks == []
         assert warned is False
 
-    def test_blank_paragraphs_are_skipped(self):
+    def test_blank_paragraphs_are_skipped(self) -> None:
         adapter = make_adapter(chunk_size=20)
         text = "Real content here.\n\n\n\n   \n\nMore content here."
         chunks, warned = adapter._split_into_chunks(text, "gpt-4o-mini")
@@ -86,7 +88,7 @@ class TestParagraphChunking:
 # ---------------------------------------------------------------------------
 
 class TestSentenceFallback:
-    def test_large_paragraph_split_into_sentences(self):
+    def test_large_paragraph_split_into_sentences(self) -> None:
         """A paragraph exceeding chunk_size should be split by sentence."""
         adapter = make_adapter(chunk_size=5)
         # Paragraph has 12 words total, each sentence has 4 words → fits chunk_size=5
@@ -100,7 +102,7 @@ class TestSentenceFallback:
         for word in ["One", "Five", "Nine"]:
             assert word in all_text
 
-    def test_sentence_fallback_groups_small_sentences_together(self):
+    def test_sentence_fallback_groups_small_sentences_together(self) -> None:
         """Multiple small sentences in a large paragraph should be grouped, not one-per-chunk."""
         adapter = make_adapter(chunk_size=10)
         # Paragraph = 18 words (exceeds 10), sentences are 3 words each → 2 per chunk
@@ -111,7 +113,7 @@ class TestSentenceFallback:
         assert len(chunks) < len(sentences)
         assert warned is False
 
-    def test_oversized_single_sentence_sets_truncation_warned(self):
+    def test_oversized_single_sentence_sets_truncation_warned(self) -> None:
         """A single sentence exceeding chunk_size cannot be sub-divided → warn."""
         adapter = make_adapter(chunk_size=3)
         # Sentence has 8 words — far exceeds chunk_size=3, no sub-division possible
@@ -121,7 +123,7 @@ class TestSentenceFallback:
         # The oversized sentence must still appear in output (not silently dropped)
         assert any("long" in c for c in chunks)
 
-    def test_mixed_normal_and_oversized_paragraphs(self):
+    def test_mixed_normal_and_oversized_paragraphs(self) -> None:
         """Normal paragraphs + one oversized paragraph: warned=True, normal ones unaffected."""
         adapter = make_adapter(chunk_size=4)
         normal = "Short para here."           # 3 tokens → fits
@@ -133,7 +135,7 @@ class TestSentenceFallback:
         assert "Short" in all_text
         assert "sentence" in all_text
 
-    def test_paragraph_no_sentence_boundaries_sets_truncation_warned(self):
+    def test_paragraph_no_sentence_boundaries_sets_truncation_warned(self) -> None:
         """Paragraph with no punctuation and exceeds chunk_size → degenerate, warned=True."""
         adapter = make_adapter(chunk_size=3)
         # No .!? so _split_sentences returns a single chunk of the whole paragraph
@@ -142,7 +144,7 @@ class TestSentenceFallback:
         assert warned is False
         assert len(chunks) >= 1
 
-    def test_truncation_warned_false_when_all_sentences_fit(self):
+    def test_truncation_warned_false_when_all_sentences_fit(self) -> None:
         """If sentence fallback resolves everything, warned must be False."""
         adapter = make_adapter(chunk_size=5)
         # Large paragraph but all individual sentences are short (3 words each)
@@ -157,7 +159,7 @@ class TestSentenceFallback:
 # ---------------------------------------------------------------------------
 
 class TestWarningKey:
-    def test_compress_result_carries_chunk_truncated_warning(self):
+    def test_compress_result_carries_chunk_truncated_warning(self) -> None:
         """compress() should surface _WARNING_CHUNK_TRUNCATED when truncation occurs."""
         from llmzip.core.lingua_adapter import _WARNING_CHUNK_TRUNCATED
 
@@ -177,7 +179,7 @@ class TestWarningKey:
 
         assert result.warning == _WARNING_CHUNK_TRUNCATED
 
-    def test_compress_result_has_no_warning_for_normal_text(self):
+    def test_compress_result_has_no_warning_for_normal_text(self) -> None:
         adapter = make_adapter(chunk_size=50)
         adapter._compressor = MagicMock()
         adapter._compressor.compress_prompt.return_value = {

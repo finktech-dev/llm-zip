@@ -1,4 +1,6 @@
+import typing
 import pytest
+
 from llmzip.core.token_counter import count_tokens
 
 
@@ -28,6 +30,6 @@ def test_longer_text_has_more_tokens() -> None:
     assert long > short
 
 
-def test_empty_text_returns_one() -> None:
+def test_empty_text_returns_zero() -> None:
     count, _ = count_tokens("", "gpt-4o-mini")
-    assert count >= 1
+    assert count == 0

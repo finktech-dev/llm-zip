@@ -1,4 +1,6 @@
+import typing
 import pytest
+
 from llmzip.core.semantic_scorer import _chunk_text, _cosine_similarity
 
 

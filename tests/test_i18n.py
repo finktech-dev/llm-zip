@@ -1,7 +1,8 @@
-import pytest
-from llmzip.i18n import t, configure
+import typing
+from llmzip.i18n import configure, t
 
-def test_i18n_translation_keys():
+
+def test_i18n_translation_keys() -> None:
     configure("en")
     assert t("pricing.accuracy.exact") == "exact"
     
@@ -11,7 +12,7 @@ def test_i18n_translation_keys():
     configure("pt")
     assert t("pricing.accuracy.exact") == "exato"
 
-def test_i18n_warning_translations():
+def test_i18n_warning_translations() -> None:
     key = "compress.warning.chunk_truncated"
     
     configure("en")
@@ -23,6 +24,6 @@ def test_i18n_warning_translations():
     # Accept both "truncado" or "truncó"
     assert "trunc" in val_es
 
-def test_i18n_fallback():
+def test_i18n_fallback() -> None:
     configure("es")
     assert t("non.existent.key") == "non.existent.key"

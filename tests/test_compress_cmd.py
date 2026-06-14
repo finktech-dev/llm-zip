@@ -1,7 +1,9 @@
-import pytest
+import typing
 from pathlib import Path
-from typer.testing import CliRunner
 from unittest.mock import MagicMock, patch
+
+import pytest
+from typer.testing import CliRunner
 
 from llmzip.cli.main import app
 from llmzip.core.lingua_adapter import CompressionResult
@@ -38,8 +40,8 @@ def txt_file(tmp_path: Path) -> Path:
     return f
 
 
-def _patches():
-    return [
+def _patches() -> None:
+    return [  # type: ignore
         patch("llmzip.cli.compress_cmd.load", return_value=MOCK_CONFIG),
         patch("llmzip.cli.compress_cmd.LinguaAdapter"),
         patch("llmzip.cli.compress_cmd.SemanticScorer"),

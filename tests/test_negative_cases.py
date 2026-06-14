@@ -1,18 +1,22 @@
+import typing
+import io
+from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock, patch
+
 from llmzip.api.app import app
 from llmzip.api.dependencies import get_config
-import io
+
 
 @pytest.fixture(autouse=True)
-def mock_heavy_loaders():
+def mock_heavy_loaders() -> typing.Generator[typing.Any, None, None]:
     with patch("llmzip.core.lingua_adapter.LinguaAdapter.load", return_value=None), \
          patch("llmzip.core.semantic_scorer.SemanticScorer.load", return_value=None):
         yield
 
 @pytest.fixture
-def client():
+def client() -> typing.Generator[typing.Any, None, None]:
     app.dependency_overrides = {}
     with TestClient(app) as c:
         mock_lingua = MagicMock()
@@ -23,12 +27,12 @@ def client():
             compression_ratio=2.0,
             warning=None
         )
-        c.app.state.lingua = mock_lingua
-        c.app.state.scorer = MagicMock()
-        c.app.state.scorer.score.return_value = 0.95
+        c.app.state.lingua = mock_lingua  # type: ignore
+        c.app.state.scorer = MagicMock()  # type: ignore
+        c.app.state.scorer.score.return_value = 0.95  # type: ignore
         yield c
 
-def test_text_exceeds_max_tokens(client):
+def test_text_exceeds_max_tokens(client: typing.Any) -> None:
     mock_config = MagicMock()
     mock_config.max_tokens = 100
     mock_config.default_model = "gpt-4o-mini"
@@ -41,14 +45,14 @@ def test_text_exceeds_max_tokens(client):
     })
     assert res.status_code == 413
 
-def test_pydantic_ratio_validation(client):
+def test_pydantic_ratio_validation(client: typing.Any) -> None:
     res = client.post("/v1/compress", json={
         "text": "some text",
         "ratio": 1.5
     })
     assert res.status_code == 422
 
-def test_invalid_model_name_does_not_crash(client):
+def test_invalid_model_name_does_not_crash(client: typing.Any) -> None:
     res = client.post("/v1/compress", json={
         "text": "short",
         "model": "ghost-model-999",
@@ -57,7 +61,7 @@ def test_invalid_model_name_does_not_crash(client):
     assert res.status_code == 200
     assert res.json()["skipped"] is True
 
-def test_compress_file_unsupported(client):
+def test_compress_file_unsupported(client: typing.Any) -> None:
     file = io.BytesIO(b"fake data")
     res = client.post(
         "/v1/compress/file",
@@ -66,7 +70,7 @@ def test_compress_file_unsupported(client):
     )
     assert res.status_code == 400
 
-def test_batch_oversized_item(client):
+def test_batch_oversized_item(client: typing.Any) -> None:
     mock_config = MagicMock()
     mock_config.max_tokens = 50
     mock_config.max_batch_size = 10

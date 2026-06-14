@@ -1,11 +1,11 @@
-import pytest
-from pathlib import Path
+import typing
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from llmzip.conversion.file_converter import (
     SUPPORTED_EXTENSIONS,
     convert,
-    convert_bytes,
 )
 
 
@@ -15,7 +15,7 @@ def test_supported_extensions_not_empty() -> None:
     assert ".docx" in SUPPORTED_EXTENSIONS
 
 
-def test_unsupported_extension_raises(tmp_path) -> None:
+def test_unsupported_extension_raises(tmp_path) -> None:  # type: ignore
     fake = tmp_path / "file.xyz"
     fake.write_text("content")
     with pytest.raises(ValueError, match="Unsupported file format"):
@@ -23,7 +23,7 @@ def test_unsupported_extension_raises(tmp_path) -> None:
 
 
 @patch("llmzip.conversion.file_converter._assert_markitdown_available")
-def test_convert_returns_result_on_success(mock_check, tmp_path) -> None:
+def test_convert_returns_result_on_success(mock_check: typing.Any, tmp_path) -> None:  # type: ignore
     fake_file = tmp_path / "doc.pdf"
     fake_file.write_bytes(b"fake pdf content")
 
@@ -42,7 +42,7 @@ def test_convert_returns_result_on_success(mock_check, tmp_path) -> None:
 
 
 @patch("llmzip.conversion.file_converter._assert_markitdown_available")
-def test_convert_returns_warning_on_empty_text(mock_check, tmp_path) -> None:
+def test_convert_returns_warning_on_empty_text(mock_check: typing.Any, tmp_path) -> None:  # type: ignore
     fake_file = tmp_path / "empty.docx"
     fake_file.write_bytes(b"")
 

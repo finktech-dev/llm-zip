@@ -1,6 +1,7 @@
+import typing
 from unittest.mock import patch
 
-from llmzip.core.savings_calculator import calculate_savings, _build_model_list
+from llmzip.core.savings_calculator import _build_model_list, calculate_savings
 
 MOCK_PRICES = {
     "gpt-4o-mini":          {"input": 0.15,  "output": 0.60},
@@ -13,7 +14,7 @@ MOCK_META = {"note": "test prices"}
 
 
 @patch("llmzip.core.savings_calculator.resolve_prices", return_value=(MOCK_PRICES, MOCK_META))
-def test_returns_savings_for_featured_models(mock_resolve) -> None:
+def test_returns_savings_for_featured_models(mock_resolve: typing.Any) -> None:
     result = calculate_savings(
         original_text="word " * 1000,
         compressed_text="word " * 200,
@@ -24,7 +25,7 @@ def test_returns_savings_for_featured_models(mock_resolve) -> None:
 
 
 @patch("llmzip.core.savings_calculator.resolve_prices", return_value=(MOCK_PRICES, MOCK_META))
-def test_savings_are_positive(mock_resolve) -> None:
+def test_savings_are_positive(mock_resolve: typing.Any) -> None:
     result = calculate_savings(
         original_text="word " * 1000,
         compressed_text="word " * 200,
@@ -36,7 +37,7 @@ def test_savings_are_positive(mock_resolve) -> None:
 
 
 @patch("llmzip.core.savings_calculator.resolve_prices", return_value=(MOCK_PRICES, MOCK_META))
-def test_custom_default_model_included(mock_resolve) -> None:
+def test_custom_default_model_included(mock_resolve: typing.Any) -> None:
     result = calculate_savings(
         original_text="word " * 500,
         compressed_text="word " * 100,

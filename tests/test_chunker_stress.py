@@ -1,9 +1,11 @@
-import pytest
-from llmzip.core.lingua_adapter import LinguaAdapter
-from unittest.mock import patch, MagicMock
+import typing
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
-def test_chunker_sliding_window_fallback():
+from llmzip.core.lingua_adapter import LinguaAdapter
+
+
+def test_chunker_sliding_window_fallback() -> None:
     # Test text with no paragraphs, sentences or lines to force sliding window
     long_unstructured_text = "word" * 2000 
     
@@ -24,7 +26,7 @@ def test_chunker_sliding_window_fallback():
         assert "compressed" in res.compressed_text
         assert adapter._compressor.compress_prompt.called
 
-def test_chunker_very_long_sentences():
+def test_chunker_very_long_sentences() -> None:
     # Paragraphs exist but sentences are huge
     text = ("sentence " * 600) + "\n\n" + ("another " * 600)
     
