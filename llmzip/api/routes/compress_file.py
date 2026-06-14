@@ -221,11 +221,8 @@ async def compress_file(
         },
     )
 
-    warning = result.warning or conversion_warning
-    if accuracy != "exact":
-        msg = f"Model '{model}' token count is estimated (±10%). Exact counting is supported for OpenAI models (gpt-*, o1, o3, o4)."
-        warning = f"{warning}. {msg}" if warning else msg
-
+    from llmzip.api.dependencies import get_warning
+    warning = get_warning(result.warning or conversion_warning, accuracy, model)
 
     return CompressResponse(
         compressed=result.compressed_text,

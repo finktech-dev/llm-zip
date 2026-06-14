@@ -15,14 +15,13 @@ def get_lingua(request: Request) -> Compressor:
 def get_scorer(request: Request) -> Scorer:
     return cast(Scorer, request.app.state.scorer)
 
-def get_warning(msg: str | None, accuracy: str, model: str) -> str | None:
-    warning = None
+def get_warning(compression_warning: str | None, accuracy: str, model: str) -> str | None:
+    parts: list[str] = []
+    if compression_warning:
+        parts.append(compression_warning)
     if accuracy != "exact":
-        warning = f"Model '{model}' token count is estimated (±10%). Exact counting is supported for OpenAI models (gpt-*, o1, o3, o4)."
-    
-    if msg:
-        if warning:
-            warning += f". {msg}"
-        else:
-            warning = msg
-    return warning
+        parts.append(
+            f"Model '{model}' token count is estimated (±10%). "
+            "Exact counting is supported for OpenAI models (gpt-*, o1, o3, o4)."
+        )
+    return " | ".join(parts) if parts else None
