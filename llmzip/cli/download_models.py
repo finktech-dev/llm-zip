@@ -128,7 +128,9 @@ def _select_model_interactive() -> str:
 
 def _serve_readiness() -> None:
     import http.server
+    import os
     import socketserver
+    from urllib.parse import urlparse
 
     class ReadyHandler(http.server.BaseHTTPRequestHandler):
         def do_GET(self) -> None:
@@ -143,6 +145,11 @@ def _serve_readiness() -> None:
         def log_message(self, format: str, *args: object) -> None:
             pass
 
-    with socketserver.TCPServer(("", 8001), ReadyHandler) as httpd:
+    # Read port from MODELS_URL environment variable, fallback to 8001
+    models_url = os.environ.get("MODELS_URL", "http://0.0.0.0:8001")
+    parsed_url = urlparse(models_url)
+    port = parsed_url.port or 8001
+
+    with socketserver.TCPServer(("", port), ReadyHandler) as httpd:
         typer.echo(t("download.serving"))
         httpd.serve_forever()

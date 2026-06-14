@@ -16,9 +16,9 @@ This document lists known limitations of the current release, their impact, and 
 
 ---
 
-## Metrics — In-Memory, Not Persistent (v0.3.0+)
+## Metrics — In-Memory, Not Persistent (planned)
 
-**What it means:** The `/v1/status` endpoint (planned for v0.3.0) will store metrics (total requests, tokens compressed, savings) in each process's memory.
+**What it means:** Future metrics endpoints (like `/v1/status`) will store metrics (total requests, tokens compressed, savings) in each process's memory.
 
 **When it becomes a problem:** Metrics reset on every container restart. With multiple replicas, each replica reports its own independent counters.
 
@@ -46,21 +46,21 @@ This document lists known limitations of the current release, their impact, and 
 
 **When it becomes a problem:** HTTP clients with short timeout settings, or UIs that need progress indication.
 
-**Workaround:** Increase your HTTP client timeout. For files larger than a few MB, consider using `/v1/compress/batch/async` (planned for v0.3.0) which returns a `job_id` immediately and allows polling for results.
+**Workaround:** Increase your HTTP client timeout. For very large files, consider splitting them before submission.
 
-**Planned fix:** Streaming response for `/v1/compress/file` is on the v0.4.0 roadmap.
+**Planned fix:** Streaming response for `/v1/compress/file` or async job support is on the roadmap for future releases.
 
 ---
 
-## Batch Async Jobs — Not Persistent (v0.3.0+)
+## Batch Async Jobs — Not Available (v0.3.0)
 
-**What it means:** When `/v1/compress/batch/async` is implemented in v0.3.0, job state will be stored in memory with a configurable TTL. Jobs are lost if the container restarts.
+**What it means:** The asynchronous batch processing API was postponed and is not available in the v0.3.0 release.
 
-**When it becomes a problem:** Long-running jobs that outlive a container restart or deployment.
+**When it becomes a problem:** Long-running batch jobs may time out the HTTP connection if they exceed the configured `INFERENCE_TIMEOUT`.
 
-**Workaround:** Resubmit the job after a restart. Keep job TTL (`JOB_TTL_SECONDS`) short enough that stale jobs don't accumulate.
+**Workaround:** Use the synchronous `/v1/compress/batch` endpoint and increase your client-side timeout, or split large batches into smaller requests.
 
-**Planned fix:** Persistent job storage is not currently scheduled.
+**Planned fix:** Async job support is on the roadmap for future releases.
 
 ---
 

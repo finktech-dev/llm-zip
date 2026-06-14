@@ -1,4 +1,3 @@
-import typing
 from llmzip.i18n import configure, t
 
 

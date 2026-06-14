@@ -1,4 +1,3 @@
-import typing
 import pytest
 
 from llmzip.core.token_counter import count_tokens

@@ -1,11 +1,12 @@
-import typing
 import io
+import typing
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 from llmzip.api.dependencies import get_config
+
 
 @pytest.fixture
 def client() -> typing.Generator[typing.Any, None, None]:

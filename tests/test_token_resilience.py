@@ -1,4 +1,3 @@
-import typing
 from unittest.mock import patch
 
 import llmzip.core.token_counter as token_counter

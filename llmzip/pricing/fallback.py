@@ -6,7 +6,7 @@ class PriceEntry(TypedDict):
     output: float
 
 # All values are USD per million tokens (input / output).
-# PRICES_LAST_UPDATED = "2026-06-06"
+PRICES_LAST_UPDATED = "2026-06-14"
 
 FALLBACK_META: dict[str, str] = {
     "note": "Rates from llm-zip fallback (LiteLLM unavailable)",

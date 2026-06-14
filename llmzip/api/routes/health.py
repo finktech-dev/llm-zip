@@ -1,3 +1,4 @@
+import os
 import threading
 from pathlib import Path
 
@@ -8,7 +9,7 @@ from llmzip.api.schemas import HealthResponse, LiveResponse, ReadyDetailResponse
 from llmzip.config.loader import AppConfig
 
 router = APIRouter()
-_READY_MARKER = Path("models/.ready")
+_READY_MARKER = Path(os.environ.get("MODELS_DIR", "models")) / ".ready"
 _models_loaded_event = threading.Event()
 
 

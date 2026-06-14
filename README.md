@@ -220,9 +220,9 @@ The following results were obtained by running llm-zip against real documents du
 
 | Document                             | Lang | Ratio | Tokens In | Tokens Out | Compression | Preservation | Est. Saving¹ |
 | :----------------------------------- | :--: | :---: | --------: | ---------: | :---------: | :----------: | :----------- |
-| [A Survey of LLMs][survey] (100+ p.) |  EN  |  def  |   296,726 |    172,684 |  **1.72×**  |    0.9564    | ~$0.398      |
-| [Attention Is All You Need][aiayn]   |  EN  |  0.5  |    11,993 |      6,240 |  **1.92×**  |    0.9087    | ~$0.016      |
-| Generic customs manual² (Technical)  |  ES  |  0.9  |    11,996 |      4,765 |  **2.52×**  |    0.8942    | ~$0.018      |
+| [A Survey of LLMs][survey] (100+ p.) |  EN  |  def  |   311,659 |    181,197 |  **1.72×**  |    0.9564    | ~$0.391      |
+| [Attention Is All You Need][aiayn]   |  EN  |  0.5  |    11,478 |      4,553 |  **2.52×**  |    0.8509    | ~$0.021      |
+| Generic customs manual² (Technical)  |  ES  |  0.9  |    11,996 |      4,765 |  **2.52×**  |    0.8942    | ~$0.021      |
 
 [survey]: https://arxiv.org/abs/2303.18223
 [aiayn]: https://arxiv.org/abs/1706.03762

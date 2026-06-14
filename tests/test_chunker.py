@@ -61,14 +61,14 @@ class TestParagraphChunking:
     def test_two_paragraphs_too_large_split_into_two_chunks(self) -> None:
         adapter = make_adapter(chunk_size=5)
         # Each paragraph is 6 words — exceeds chunk_size alone.
-        # Sentence fallback kicks in; each sentence (6 tokens) still exceeds chunk_size=5
-        # so truncation_warned=True is expected and correct.
+        # Sentence fallback kicks in; each sentence (6 tokens) still exceeds chunk_size=5.
+        # Since v0.2.2, Level 3 sliding window guarantees chunks fit, so truncation_warned=False.
         p1 = "one two three four five six."
         p2 = "seven eight nine ten eleven twelve."
         text = f"{p1}\n\n{p2}"
         chunks, warned = adapter._split_into_chunks(text, "gpt-4o-mini")
         assert len(chunks) >= 2
-        assert warned is False  # sentences themselves exceed chunk_size=5
+        assert warned is False
 
     def test_empty_text_returns_empty_chunks(self) -> None:
         adapter = make_adapter(chunk_size=10)

@@ -41,28 +41,27 @@ def resolve_prices() -> tuple[dict[str, PriceEntry], dict[str, str]]:
             return _cache_prices, _cache_meta
         if (now - _last_fetch_attempt) < _FETCH_COOLDOWN:
             return (_cache_prices, _cache_meta) if _cache_prices else (FALLBACK_PRICES, FALLBACK_META)
+        
         _last_fetch_attempt = now
 
-    disk = disk_load(_cache_ttl)
-    if disk is not None:
-        prices, meta = disk
-        with _fetch_lock:
+        disk = disk_load(_cache_ttl)
+        if disk is not None:
+            prices, meta = disk
             _cache_prices = prices
             _cache_meta = meta
             _cache_timestamp = time.monotonic()
-        logger.debug("Prices loaded from disk cache")
-        return _cache_prices, _cache_meta
+            logger.debug("Prices loaded from disk cache")
+            return _cache_prices, _cache_meta
 
-    fetched = fetch_prices()
-    if fetched is not None:
-        prices, meta = fetched
-        disk_save(prices, meta)
-        with _fetch_lock:
+        fetched = fetch_prices()
+        if fetched is not None:
+            prices, meta = fetched
+            disk_save(prices, meta)
             _cache_prices = prices
             _cache_meta = meta
             _cache_timestamp = time.monotonic()
-        logger.debug("Prices refreshed from LiteLLM and written to disk")
-        return _cache_prices, _cache_meta
+            logger.debug("Prices refreshed from LiteLLM and written to disk")
+            return _cache_prices, _cache_meta
 
     if _cache_prices:
         logger.warning("LiteLLM unavailable — serving stale RAM cache")
