@@ -256,9 +256,12 @@ class LinguaAdapter:
 
             compressed_parts: list[str] = res.get("compressed_prompt_list") or []
             if not compressed_parts:
-                compressed_parts = [res["compressed_prompt"]]
+                fallback = res.get("compressed_prompt") or text
+                compressed_parts = [fallback]
 
-            full_compressed = "\n".join(compressed_parts)
+            full_compressed = "\n".join(p for p in compressed_parts if p)
+            if not full_compressed:
+                full_compressed = text
             compressed_tokens, _ = count_tokens(full_compressed, target_model)
             actual_ratio = (
                 original_tokens / compressed_tokens
