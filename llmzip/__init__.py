@@ -1,4 +1,9 @@
-__version__ = "0.2.1"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("llm-zip")
+except PackageNotFoundError:
+    __version__ = "0.0.0-dev"
 
 import llmzip.i18n as i18n
 
