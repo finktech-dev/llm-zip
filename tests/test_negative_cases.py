@@ -8,16 +8,44 @@ from fastapi.testclient import TestClient
 from llmzip.api.dependencies import get_config
 
 
+from llmzip.config.loader import AppConfig
+
+
 @pytest.fixture
 def client() -> typing.Generator[typing.Any, None, None]:
-    with patch("llmzip.api.app.LinguaAdapter"), \
+    mock_config = AppConfig(
+        port=8000,
+        api_key=None,
+        deploy_mode="monolith",
+        models_url="http://localhost:8001",
+        max_tokens=128000,
+        min_tokens_to_compress=500,
+        default_ratio=0.5,
+        default_model="gpt-4o-mini",
+        max_batch_size=25,
+        batch_workers=4,
+        chunk_size=400,
+        compression_model="bert-base",
+        scorer_model="paraphrase-multilingual-MiniLM-L12-v2",
+        scorer_timeout=30,
+        inference_timeout=300,
+        pricing_cache_ttl=3600,
+        cache_dir=None,
+        rate_limit_enabled=False,
+        rate_limit_rpm=60,
+        rate_limit_rpd=10000,
+        max_file_size_mb=50,
+        file_conversion_enabled=True,
+        lang="en"
+    )
+
+    with patch("llmzip.api.app.load", return_value=mock_config), \
+         patch("llmzip.api.app.LinguaAdapter"), \
          patch("llmzip.api.app.SemanticScorer"), \
          patch("llmzip.api.app.set_models_loaded"):
         
         from llmzip.api.app import create_app
         app = create_app()
-        # Ensure we operate in monolith to prevent remote polling
-        app.state.config.deploy_mode = "monolith"
         
         with TestClient(app) as c:
             mock_lingua = MagicMock()
