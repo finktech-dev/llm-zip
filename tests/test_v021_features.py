@@ -4,7 +4,6 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from llmzip.api.app import create_app
 from llmzip.config.loader import AppConfig
 
 
@@ -14,12 +13,13 @@ def client() -> typing.Generator[typing.Any, None, None]:
          patch("llmzip.api.app.LinguaAdapter"), \
          patch("llmzip.api.app.SemanticScorer"), \
          patch("llmzip.api.app.set_models_loaded"):
+        from llmzip.api.app import create_app
         cfg = AppConfig(
             port=8000, api_key=None, deploy_mode="monolith", models_url="...",
             max_tokens=1000, min_tokens_to_compress=50, default_ratio=0.5,
             default_model="gpt-4o-mini", max_batch_size=10, batch_workers=1,
             chunk_size=400, compression_model="bert-base", scorer_model="...",
-            scorer_timeout=10, pricing_cache_ttl=3600, cache_dir=None, rate_limit_enabled=False,
+            scorer_timeout=10, inference_timeout=300, pricing_cache_ttl=3600, cache_dir=None, rate_limit_enabled=False,
             rate_limit_rpm=60, rate_limit_rpd=10000, max_file_size_mb=1,
             file_conversion_enabled=True, lang="en"
         )
