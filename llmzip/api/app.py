@@ -77,8 +77,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logger.critical("Remote models service failed to load within 5 minutes.")
             raise RuntimeError("Remote models service unavailable")
 
-        app.state.lingua = RemoteLinguaAdapter(config.models_url)
-        app.state.scorer = RemoteSemanticScorer(config.models_url)
+        app.state.lingua = RemoteLinguaAdapter(config.models_url, timeout=float(config.inference_timeout))
+        app.state.scorer = RemoteSemanticScorer(config.models_url, timeout=float(config.scorer_timeout))
         set_models_loaded(True)
     else:
         logger.info("Operating in MONOLITH mode. Loading models locally.")

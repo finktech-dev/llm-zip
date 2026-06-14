@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 class RemoteSemanticScorer:
     """Same interface as SemanticScorer but delegates to llmzip-models via HTTP."""
     
-    def __init__(self, models_url: str) -> None:
+    def __init__(self, models_url: str, timeout: float = 60.0) -> None:
         self._url = models_url.rstrip("/")
+        self._timeout = timeout
     
     def load(self) -> None:
         # Models are assumed to be loaded in the remote service.
@@ -17,7 +18,7 @@ class RemoteSemanticScorer:
     
     def score(self, original: str, compressed: str) -> float | None:
         try:
-            with httpx.Client(timeout=60.0) as client:
+            with httpx.Client(timeout=self._timeout) as client:
                 response = client.post(
                     f"{self._url}/infer/score",
                     json={
@@ -29,5 +30,5 @@ class RemoteSemanticScorer:
                 data = response.json()
                 return cast(float | None, data.get("score"))
         except Exception as e:
-            logger.error(f"Remote scoring failed: {e}")
+            logger.error("Remote scoring failed: %s", e)
             return None

@@ -9,8 +9,9 @@ logger = logging.getLogger(__name__)
 class RemoteLinguaAdapter:
     """Same interface as LinguaAdapter but delegates to llmzip-models via HTTP."""
     
-    def __init__(self, models_url: str) -> None:
+    def __init__(self, models_url: str, timeout: float = 300.0) -> None:
         self._url = models_url.rstrip("/")
+        self._timeout = timeout
     
     def load(self) -> None:
         # Models are assumed to be loaded in the remote service.
@@ -19,7 +20,7 @@ class RemoteLinguaAdapter:
     
     def compress(self, text: str, ratio: float, target_model: str) -> CompressionResult:
         try:
-            with httpx.Client(timeout=300.0) as client:
+            with httpx.Client(timeout=self._timeout) as client:
                 response = client.post(
                     f"{self._url}/infer/compress",
                     json={
@@ -39,7 +40,7 @@ class RemoteLinguaAdapter:
                     warning=data.get("warning")
                 )
         except Exception as e:
-            logger.error(f"Remote compression failed: {e}")
+            logger.error("Remote compression failed: %s", e)
             # Fallback to returning original text on failure to match local behavior
             from llmzip.core.token_counter import count_tokens
             original_tokens, _ = count_tokens(text, target_model)

@@ -29,6 +29,7 @@ class AppConfig:
     compression_model: str
     scorer_model: str
     scorer_timeout: int
+    inference_timeout: int
     pricing_cache_ttl: int
     cache_dir: Path | None
     rate_limit_enabled: bool
@@ -99,6 +100,7 @@ def load() -> AppConfig:
                 fallback="paraphrase-multilingual-MiniLM-L12-v2",
             ),
             scorer_timeout=int(parser.get("compression", "SCORER_TIMEOUT", fallback="30")),
+            inference_timeout=int(parser.get("compression", "INFERENCE_TIMEOUT", fallback="300")),
             pricing_cache_ttl=int(parser.get("pricing", "CACHE_TTL", fallback="3600")),
             cache_dir=Path(
                 os.environ.get(
