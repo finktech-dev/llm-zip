@@ -5,27 +5,23 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from llmzip.api.app import app
-
-
-# Bypassing the heavy model loading for unit tests
-@pytest.fixture(autouse=True)
-def mock_models_loading() -> typing.Generator[typing.Any, None, None]:
-    with patch("llmzip.core.lingua_adapter.LinguaAdapter.load", return_value=None), \
-         patch("llmzip.core.semantic_scorer.SemanticScorer.load", return_value=None):
-        yield
-
-# Usamos context manager global para el cliente si queremos disparar el lifespan (mockeado)
 @pytest.fixture
 def client() -> typing.Generator[typing.Any, None, None]:
-    # Aseguramos que la app tenga una configuración válida para los tests
-    with TestClient(app) as c:
-        # Aseguramos que el estado tenga mocks si el lifespan no los puso
-        if not hasattr(c.app.state, "lingua"):  # type: ignore
+    with patch("llmzip.api.app.LinguaAdapter"), \
+         patch("llmzip.api.app.SemanticScorer"), \
+         patch("llmzip.api.app.set_models_loaded"):
+        
+        from llmzip.api.app import create_app
+        app = create_app()
+        # Ensure we operate in monolith to prevent remote polling
+        app.state.config.deploy_mode = "monolith"
+        
+        with TestClient(app) as c:
             c.app.state.lingua = MagicMock()  # type: ignore
-        if not hasattr(c.app.state, "scorer"):  # type: ignore
             c.app.state.scorer = MagicMock()  # type: ignore
-        yield c
+            c.app.state.models_loaded = True  # type: ignore
+            c.app.state.deploy_mode = "monolith"  # type: ignore
+            yield c
 
 def test_compress_skipped_logic(client: typing.Any) -> None:
     with patch("llmzip.api.routes.compress.count_tokens", return_value=(10, "exact")):
