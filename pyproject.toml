@@ -23,6 +23,11 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
+
+[project.urls]
+Homepage = "https://github.com/finktech-dev/llm-zip"
+Changelog = "https://github.com/finktech-dev/llm-zip/blob/main/CHANGELOG.md"
+
 dependencies = [
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",
