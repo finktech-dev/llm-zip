@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: llmzip-api
-    command: ["uvicorn", "llmzip.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["uvicorn", "llmzip.api.app:get_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
     volumes:
       - ./.llmzip.config:/app/.llmzip.config:ro
       - ./.llmzipignore:/app/.llmzipignore:ro

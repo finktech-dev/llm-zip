@@ -169,4 +169,12 @@ def create_app() -> FastAPI:
     return app
 
 
-app = create_app()
+def get_app() -> FastAPI:
+    return create_app()
+
+if __name__ != "__main__":
+    try:
+        app = create_app()
+    except SystemExit:
+        # Allows importing the module in tests without a config present
+        app = FastAPI()
