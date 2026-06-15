@@ -132,7 +132,7 @@ async def compress_file(
             "compress_file ok",
             extra={
                 "event": "compress_file_ok",
-                "filename": file.filename,
+                "input_filename": file.filename,
                 "tokens_in": original_tokens,
                 "tokens_out": original_tokens,
                 "ratio": 1.0,
