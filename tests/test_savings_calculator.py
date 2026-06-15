@@ -4,11 +4,11 @@ from unittest.mock import patch
 from llmzip.core.savings_calculator import _build_model_list, calculate_savings
 
 MOCK_PRICES = {
-    "gpt-4o-mini":          {"input": 0.15,  "output": 0.60},
-    "gpt-5.4-mini":         {"input": 0.40,  "output": 1.60},
-    "claude-haiku-4-5":     {"input": 1.00,  "output": 5.00},
-    "gemini-2.5-flash-lite":{"input": 0.10,  "output": 0.40},
-    "deepseek-v4-flash":    {"input": 0.07,  "output": 0.28},
+    "gpt-4o-mini": {"input": 0.15, "output": 0.60},
+    "gpt-5.4-mini": {"input": 0.40, "output": 1.60},
+    "claude-haiku-4-5": {"input": 1.00, "output": 5.00},
+    "gemini-2.5-flash-lite": {"input": 0.10, "output": 0.40},
+    "deepseek-v4-flash": {"input": 0.07, "output": 0.28},
 }
 MOCK_META = {"note": "test prices"}
 

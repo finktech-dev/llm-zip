@@ -26,11 +26,17 @@ def _load_patterns() -> list[str]:
 _patterns: list[str] | None = None
 
 
+def reload_patterns() -> None:
+    """Force re-loading patterns from disk (useful for testing)."""
+    global _patterns
+    _patterns = _load_patterns()
+
+
 def _get_patterns() -> list[str]:
     global _patterns
     if _patterns is None:
-        _patterns = _load_patterns()
-    return _patterns
+        reload_patterns()
+    return _patterns if _patterns is not None else []
 
 
 def should_skip(text: str, filename: str | None = None) -> bool:

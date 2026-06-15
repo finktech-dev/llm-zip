@@ -65,13 +65,16 @@ def resolve_prices() -> tuple[dict[str, PriceEntry], dict[str, str]]:
             logger.debug("Prices refreshed from LiteLLM and written to disk")
             return _cache_prices, _cache_meta
 
-    if _cache_prices:
-        logger.warning("LiteLLM unavailable — serving stale RAM cache")
-        return _cache_prices, _cache_meta
+        if _cache_prices:
+            logger.warning("LiteLLM unavailable — serving stale RAM cache")
+            return _cache_prices, _cache_meta
 
-    stale = disk_load(ttl=86400 * 7)
-    if stale is not None:
-        logger.warning("LiteLLM unavailable — serving stale disk cache")
-        return stale
+        stale = disk_load(ttl=86400 * 7)
+        if stale is not None:
+            logger.warning("LiteLLM unavailable — serving stale disk cache")
+            # Update RAM cache with stale disk data to avoid hitting disk until TTL
+            _cache_prices, _cache_meta = stale
+            _cache_timestamp = time.monotonic()
+            return stale
 
     return FALLBACK_PRICES, FALLBACK_META

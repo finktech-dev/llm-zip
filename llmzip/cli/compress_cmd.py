@@ -107,8 +107,6 @@ def compress(
     ratio = ratio if ratio is not None else config.default_ratio
     model = model if model is not None else config.default_model
 
-    lingua, scorer = _load_models(config)
-
     raw = _read_input(source)
     text = _maybe_convert(raw, source, config)
 
@@ -160,6 +158,7 @@ def compress(
         _write_output(text, output)
         raise typer.Exit(code=0)
 
+    lingua, scorer = _load_models(config)
     result = lingua.compress(text, ratio, model)
     score = scorer.score(text, result.compressed_text)
     savings = calculate_savings(text, result.compressed_text, model)

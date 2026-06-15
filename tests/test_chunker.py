@@ -42,6 +42,7 @@ def patch_count_tokens() -> typing.Generator[typing.Any, None, None]:
 # Paragraph-level chunking (existing behaviour, must not regress)
 # ---------------------------------------------------------------------------
 
+
 class TestParagraphChunking:
     def test_single_short_paragraph_stays_as_one_chunk(self) -> None:
         adapter = make_adapter(chunk_size=20)
@@ -88,6 +89,7 @@ class TestParagraphChunking:
 # Sub-sentence fallback (new in v0.2.2)
 # ---------------------------------------------------------------------------
 
+
 class TestSentenceFallback:
     def test_large_paragraph_split_into_sentences(self) -> None:
         """A paragraph exceeding chunk_size should be split by sentence."""
@@ -127,8 +129,10 @@ class TestSentenceFallback:
     def test_mixed_normal_and_oversized_paragraphs(self) -> None:
         """Normal paragraphs + one oversized paragraph: warned=True, normal ones unaffected."""
         adapter = make_adapter(chunk_size=4)
-        normal = "Short para here."           # 3 tokens → fits
-        oversized_sent = "This sentence alone is way too long for any chunk to hold it."  # 14 tokens
+        normal = "Short para here."  # 3 tokens → fits
+        oversized_sent = (
+            "This sentence alone is way too long for any chunk to hold it."  # 14 tokens
+        )
         text = f"{normal}\n\n{oversized_sent}"
         chunks, warned = adapter._split_into_chunks(text, "gpt-4o-mini")
         assert warned is False
@@ -159,6 +163,7 @@ class TestSentenceFallback:
 # Warning key propagation
 # ---------------------------------------------------------------------------
 
+
 class TestWarningKey:
     def test_compress_result_carries_chunk_truncated_warning(self) -> None:
         """compress() should surface _WARNING_CHUNK_TRUNCATED when truncation occurs."""
@@ -166,26 +171,24 @@ class TestWarningKey:
 
         adapter = make_adapter(chunk_size=3)
         adapter._compressor = MagicMock()
-        adapter._compressor.compress_prompt.return_value = {
-            "compressed_prompt": "short"
-        }
+        adapter._compressor.compress_prompt.return_value = {"compressed_prompt": "short"}
 
-        with patch.object(adapter, "_split_into_chunks", return_value=(["chunk"], True)), \
-             patch("llmzip.core.lingua_adapter.count_tokens", side_effect=fake_count_tokens):
+        with (
+            patch.object(adapter, "_split_into_chunks", return_value=(["chunk"], True)),
+            patch("llmzip.core.lingua_adapter.count_tokens", side_effect=fake_count_tokens),
+        ):
             result = adapter.compress(
                 text="This single sentence is definitely too long to fit in three tokens.",
-                    ratio=0.5,
-                    target_model="gpt-4o-mini",
-                )
+                ratio=0.5,
+                target_model="gpt-4o-mini",
+            )
 
         assert result.warning == _WARNING_CHUNK_TRUNCATED
 
     def test_compress_result_has_no_warning_for_normal_text(self) -> None:
         adapter = make_adapter(chunk_size=50)
         adapter._compressor = MagicMock()
-        adapter._compressor.compress_prompt.return_value = {
-            "compressed_prompt": "compressed"
-        }
+        adapter._compressor.compress_prompt.return_value = {"compressed_prompt": "compressed"}
 
         with patch("llmzip.core.lingua_adapter.count_tokens", side_effect=fake_count_tokens):
             result = adapter.compress(

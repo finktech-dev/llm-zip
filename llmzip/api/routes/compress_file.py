@@ -6,10 +6,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
 
-from llmzip.api.dependencies import get_config, get_lingua, get_scorer
+from llmzip.api.dependencies import get_config, get_lingua, get_scorer, get_warning
 from llmzip.api.limiter import get_rpd_limit, get_rpm_limit, limiter
 from llmzip.api.schemas import CompressResponse
 from llmzip.config.loader import AppConfig
+from llmzip.core.ignore import should_skip
 from llmzip.core.protocols import Compressor, Scorer
 from llmzip.core.savings_calculator import calculate_savings
 from llmzip.core.token_counter import count_tokens
@@ -133,8 +134,6 @@ async def compress_file(
             detail="File conversion produced no extractable text.",
         )
 
-    from llmzip.core.ignore import should_skip
-
     if should_skip(text, file.filename):
         original_tokens, _ = count_tokens(text, model)
         elapsed_ms = int((time.perf_counter() - start) * 1000)
@@ -229,8 +228,6 @@ async def compress_file(
             "skipped": False,
         },
     )
-
-    from llmzip.api.dependencies import get_warning
 
     warning = get_warning(result.warning or conversion_warning, accuracy, model)
 

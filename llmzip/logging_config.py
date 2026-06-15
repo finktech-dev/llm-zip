@@ -76,10 +76,13 @@ def setup_logging(log_level: str = "INFO") -> None:
 
     # Rotating File Handler (JSON)
     log_file = os.environ.get("LOG_FILE", "logs/llmzip.log")
-    os.makedirs(os.path.dirname(log_file), exist_ok=True)
-    file_handler = RotatingFileHandler(log_file, maxBytes=10 * 1024 * 1024, backupCount=5)
-    file_handler.setFormatter(JSONFormatter())
-    root_logger.addHandler(file_handler)
+    if log_file.lower() != "none":
+        log_dir = os.path.dirname(log_file)
+        if log_dir:
+            os.makedirs(log_dir, exist_ok=True)
+        file_handler = RotatingFileHandler(log_file, maxBytes=10 * 1024 * 1024, backupCount=5)
+        file_handler.setFormatter(JSONFormatter())
+        root_logger.addHandler(file_handler)
 
     # Silence noise
     for name in [
