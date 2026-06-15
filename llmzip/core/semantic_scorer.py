@@ -28,10 +28,9 @@ class SemanticScorer:
 
     def load(self) -> None:
         from sentence_transformers import SentenceTransformer
+
         logger.info("Loading semantic scorer: %s", self._model_id)
-        self._model = SentenceTransformer(
-            self._model_id, cache_folder=str(self._models_dir)
-        )
+        self._model = SentenceTransformer(self._model_id, cache_folder=str(self._models_dir))
         logger.info("Semantic scorer loaded")
 
     def score(self, original: str, compressed: str) -> float | None:
@@ -46,9 +45,7 @@ class SemanticScorer:
             try:
                 return future.result(timeout=self._timeout)
             except TimeoutError:
-                logger.warning(
-                    "Semantic scoring timed out after %ds", self._timeout
-                )
+                logger.warning("Semantic scoring timed out after %ds", self._timeout)
                 return None
 
     def _calculate_score(self, original: str, compressed: str) -> float:
@@ -59,6 +56,7 @@ class SemanticScorer:
 
     def _embed(self, text: str) -> "np.ndarray":
         import numpy as np
+
         chunks = _chunk_text(text, CHUNK_SIZE, CHUNK_OVERLAP)
         if not chunks:
             chunks = [text]
@@ -84,6 +82,7 @@ def _chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:
 
 def _cosine_similarity(a: "np.ndarray", b: "np.ndarray") -> float:
     import numpy as np
+
     norm_a = np.linalg.norm(a)
     norm_b = np.linalg.norm(b)
     if norm_a == 0 or norm_b == 0:

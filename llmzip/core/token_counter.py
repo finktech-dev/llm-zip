@@ -16,11 +16,7 @@ _encoding_cache: dict[str, tiktoken.Encoding | None] = {}
 def _ensure_tiktoken_cache() -> None:
     if "TIKTOKEN_CACHE_DIR" not in os.environ:
         cache_base = os.environ.get("LLMZIP_CACHE_DIR")
-        path = (
-            Path(cache_base) / "tiktoken"
-            if cache_base
-            else Path.home() / ".llmzip" / "tiktoken"
-        )
+        path = Path(cache_base) / "tiktoken" if cache_base else Path.home() / ".llmzip" / "tiktoken"
         path.mkdir(parents=True, exist_ok=True)
         os.environ["TIKTOKEN_CACHE_DIR"] = str(path)
 

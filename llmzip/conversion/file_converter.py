@@ -7,9 +7,20 @@ logger = logging.getLogger(__name__)
 _WARNING_FILE_EMPTY_TEXT = "compress.warning.file_empty_text"
 
 SUPPORTED_EXTENSIONS = {
-    ".pdf", ".docx", ".doc", ".xlsx", ".xls",
-    ".pptx", ".ppt", ".csv", ".html", ".htm",
-    ".xml", ".json", ".txt", ".md",
+    ".pdf",
+    ".docx",
+    ".doc",
+    ".xlsx",
+    ".xls",
+    ".pptx",
+    ".ppt",
+    ".csv",
+    ".html",
+    ".htm",
+    ".xml",
+    ".json",
+    ".txt",
+    ".md",
 }
 
 
@@ -26,12 +37,12 @@ def convert(file_path: Path) -> ConversionResult:
     suffix = file_path.suffix.lower()
     if suffix not in SUPPORTED_EXTENSIONS:
         raise ValueError(
-            f"Unsupported file format: {suffix}. "
-            f"Supported: {sorted(SUPPORTED_EXTENSIONS)}"
+            f"Unsupported file format: {suffix}. Supported: {sorted(SUPPORTED_EXTENSIONS)}"
         )
 
     try:
         from markitdown import MarkItDown
+
         md = MarkItDown()
         result = md.convert(str(file_path))
         text = result.text_content.strip()

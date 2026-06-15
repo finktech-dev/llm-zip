@@ -40,8 +40,10 @@ def resolve_prices() -> tuple[dict[str, PriceEntry], dict[str, str]]:
         if _cache_prices and (now - _cache_timestamp) < _cache_ttl:
             return _cache_prices, _cache_meta
         if (now - _last_fetch_attempt) < _FETCH_COOLDOWN:
-            return (_cache_prices, _cache_meta) if _cache_prices else (FALLBACK_PRICES, FALLBACK_META)
-        
+            return (
+                (_cache_prices, _cache_meta) if _cache_prices else (FALLBACK_PRICES, FALLBACK_META)
+            )
+
         _last_fetch_attempt = now
 
         disk = disk_load(_cache_ttl)

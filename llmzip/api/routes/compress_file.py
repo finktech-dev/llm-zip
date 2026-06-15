@@ -2,7 +2,6 @@ import logging
 import tempfile
 import time
 from pathlib import Path
-
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
@@ -82,21 +81,31 @@ async def compress_file(
     conversion_warning = None
     if config.deploy_mode == "split":
         import httpx
+
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
                 res = await client.post(
                     f"{config.models_url}/infer/convert_file",
-                    files={"file": (file.filename, content, file.content_type)}
+                    files={"file": (file.filename, content, file.content_type)},
                 )
             if res.status_code != 200:
-                logger.warning("compress error", extra={"event": "compress_error", "error": "remote_conversion_failed", "status_code": res.status_code})
+                logger.warning(
+                    "compress error",
+                    extra={
+                        "event": "compress_error",
+                        "error": "remote_conversion_failed",
+                        "status_code": res.status_code,
+                    },
+                )
                 raise HTTPException(status_code=res.status_code, detail=res.text)
-            
+
             data = res.json()
             text = data["text"]
             conversion_warning = data.get("warning")
         except httpx.RequestError as e:
-            raise HTTPException(status_code=503, detail=f"Failed to connect to models server: {e}") from e
+            raise HTTPException(
+                status_code=503, detail=f"Failed to connect to models server: {e}"
+            ) from e
     else:
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             tmp_path = Path(tmp.name)
@@ -125,6 +134,7 @@ async def compress_file(
         )
 
     from llmzip.core.ignore import should_skip
+
     if should_skip(text, file.filename):
         original_tokens, _ = count_tokens(text, model)
         elapsed_ms = int((time.perf_counter() - start) * 1000)
@@ -221,6 +231,7 @@ async def compress_file(
     )
 
     from llmzip.api.dependencies import get_warning
+
     warning = get_warning(result.warning or conversion_warning, accuracy, model)
 
     return CompressResponse(
@@ -235,4 +246,3 @@ async def compress_file(
         skipped=False,
         warning=warning,
     )
-

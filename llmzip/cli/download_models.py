@@ -30,16 +30,21 @@ _MODEL_INFO = {
 
 def download_models(
     serve: bool = typer.Option(
-        False, "--serve", hidden=True,
+        False,
+        "--serve",
+        hidden=True,
         help="Keep process alive after download (used by Docker healthcheck container).",
     ),
     interactive: bool = typer.Option(
-        False, "--interactive", "-i",
+        False,
+        "--interactive",
+        "-i",
         help="Select compression model interactively.",
     ),
 ) -> None:
     """Download LLMLingua-2 and sentence-transformer models to local storage."""
     from llmzip.config.loader import load
+
     config = load()
 
     model_name = config.compression_model
@@ -63,6 +68,7 @@ def download_models(
 
 def _download_lingua(model_name: str) -> None:
     from llmzip.core.lingua_adapter import LinguaAdapter
+
     marker = MODELS_DIR / f".lingua_{model_name}.ok"
 
     if marker.exists():
@@ -82,6 +88,7 @@ def _download_lingua(model_name: str) -> None:
 
 def _download_scorer() -> None:
     from llmzip.core.semantic_scorer import MODEL_ID, SemanticScorer
+
     marker = MODELS_DIR / ".scorer.ok"
 
     if marker.exists():

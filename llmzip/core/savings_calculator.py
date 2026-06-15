@@ -24,7 +24,7 @@ def calculate_savings(
 
     savings: dict[str, str] = {}
     accuracy_key = "pricing.accuracy.exact"
-    
+
     original_cache: dict[str, int] = {}
     compressed_cache: dict[str, int] = {}
 
@@ -34,13 +34,14 @@ def calculate_savings(
             continue
 
         original_tokens, model_accuracy = count_tokens(original_text, model, cache=original_cache)
-        
+
         if simulated_ratio is not None:
             compressed_tokens = max(1, int(original_tokens * simulated_ratio))
         else:
-            compressed_tokens, _ = count_tokens(compressed_text or "", model, cache=compressed_cache)
-            
-            
+            compressed_tokens, _ = count_tokens(
+                compressed_text or "", model, cache=compressed_cache
+            )
+
         tokens_saved = max(0, original_tokens - compressed_tokens)
 
         # input token price per million → per token

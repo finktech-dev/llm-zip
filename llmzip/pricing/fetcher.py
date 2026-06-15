@@ -8,8 +8,7 @@ from llmzip.pricing.fallback import PriceEntry
 logger = logging.getLogger(__name__)
 
 LITELLM_PRICES_URL = (
-    "https://raw.githubusercontent.com/BerriAI/litellm/main/"
-    "model_prices_and_context_window.json"
+    "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
 )
 _TIMEOUT_SECONDS = 5.0
 

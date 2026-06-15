@@ -8,6 +8,7 @@ from llmzip.i18n import en, es, ja, pt, zh
 class LangModule(Protocol):
     STRINGS: dict[str, str]
 
+
 _SUPPORTED: dict[str, LangModule] = {
     "en": en,
     "es": es,
@@ -30,12 +31,7 @@ def configure(lang: str | None = None) -> None:
     """
     global _active_lang, _active_module
 
-    resolved = (
-        lang
-        or os.environ.get("LLMZIP_LANG")
-        or _detect_system_lang()
-        or "en"
-    ).lower()[:2]
+    resolved = (lang or os.environ.get("LLMZIP_LANG") or _detect_system_lang() or "en").lower()[:2]
 
     if resolved not in _SUPPORTED:
         resolved = "en"

@@ -8,6 +8,7 @@ from llmzip.config.loader import AppConfig
 
 router = APIRouter(prefix="/v1")
 
+
 @router.get("/info", response_model=InfoResponse, tags=["system"])
 def info(config: AppConfig = Depends(get_config)) -> InfoResponse:
     return InfoResponse(

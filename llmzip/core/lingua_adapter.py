@@ -35,6 +35,7 @@ class CompressionResult:
 @dataclass
 class _ChunkAccumulator:
     """Mutable state used while building chunks from segments."""
+
     chunks: list[str] = field(default_factory=list)
     current: list[str] = field(default_factory=list)
     current_len: int = 0
@@ -263,11 +264,7 @@ class LinguaAdapter:
             if not full_compressed:
                 full_compressed = text
             compressed_tokens, _ = count_tokens(full_compressed, target_model)
-            actual_ratio = (
-                original_tokens / compressed_tokens
-                if compressed_tokens > 0
-                else 1.0
-            )
+            actual_ratio = original_tokens / compressed_tokens if compressed_tokens > 0 else 1.0
 
             return CompressionResult(
                 compressed_text=full_compressed,

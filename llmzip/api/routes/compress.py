@@ -186,9 +186,7 @@ def compress_batch(
             original_tokens, accuracy = count_tokens(item.text, model)
 
             if original_tokens > config.max_tokens:
-                return BatchResultItem(
-                    index=index, status="error", reason="above_max_tokens"
-                )
+                return BatchResultItem(index=index, status="error", reason="above_max_tokens")
 
             if original_tokens < config.min_tokens_to_compress:
                 savings = calculate_savings(item.text, item.text, model)
@@ -225,10 +223,7 @@ def compress_batch(
             return BatchResultItem(index=index, status="error", reason=str(exc))
 
     with ThreadPoolExecutor(max_workers=config.batch_workers) as executor:
-        futures = {
-            executor.submit(_process, i, item): i
-            for i, item in enumerate(req.texts)
-        }
+        futures = {executor.submit(_process, i, item): i for i, item in enumerate(req.texts)}
 
         # Collect results in a dict to avoid pre-populating a list with "pending" values.
         # This approach is runtime-portable and avoids implicit reliance on CPython's GIL.

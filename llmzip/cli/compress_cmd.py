@@ -43,20 +43,22 @@ def _maybe_convert(text: str, source: Path | None, config: AppConfig) -> str:
         return text
     suffix = source.suffix.lower()
     from llmzip.conversion.file_converter import SUPPORTED_EXTENSIONS
+
     if suffix not in SUPPORTED_EXTENSIONS or suffix == ".txt":
         return text
     if not config.file_conversion_enabled:
         typer.echo(t("compress.warning.conversion_disabled"), err=True)
         return text
     from llmzip.conversion.file_converter import convert
+
     result = convert(source)
     if result.warning:
         typer.echo(t("compress.warning.generic", warning=result.warning), err=True)
-    
+
     if not result.text or len(result.text.strip()) < 10:
         typer.echo("File conversion produced no extractable text.", err=True)
         raise typer.Exit(code=2)
-        
+
     return result.text
 
 
@@ -66,23 +68,34 @@ def compress(
         help="File to compress. Omit to read from stdin.",
     ),
     ratio: float | None = typer.Option(
-        None, "--ratio", "-r", min=0.1, max=0.9,
+        None,
+        "--ratio",
+        "-r",
+        min=0.1,
+        max=0.9,
         help="Compression ratio (0.1–0.9).",
     ),
     model: str | None = typer.Option(
-        None, "--model", "-m",
+        None,
+        "--model",
+        "-m",
         help="Target model for savings estimation.",
     ),
     output: Path | None = typer.Option(
-        None, "--output", "-o",
+        None,
+        "--output",
+        "-o",
         help="Write compressed text to file instead of stdout.",
     ),
     json_output: bool = typer.Option(
-        False, "--json",
+        False,
+        "--json",
         help="Output full JSON response including metrics.",
     ),
     interactive: bool = typer.Option(
-        False, "--interactive", "-i",
+        False,
+        "--interactive",
+        "-i",
         help="Fill missing arguments interactively with arrow keys.",
     ),
 ) -> None:
@@ -100,6 +113,7 @@ def compress(
     text = _maybe_convert(raw, source, config)
 
     from llmzip.core.ignore import should_skip
+
     filename = str(source) if source else None
     if should_skip(text, filename):
         if not json_output:
@@ -127,8 +141,11 @@ def compress(
 
     if original_tokens > config.max_tokens:
         typer.echo(
-            t("compress.error.above_max_tokens",
-              max_tokens=config.max_tokens, tokens=original_tokens),
+            t(
+                "compress.error.above_max_tokens",
+                max_tokens=config.max_tokens,
+                tokens=original_tokens,
+            ),
             err=True,
         )
         raise typer.Exit(code=2)
@@ -152,13 +169,15 @@ def compress(
 
     if not json_output:
         typer.echo(
-            t("compress.metrics",
-              original=result.original_tokens,
-              compressed=result.compressed_tokens,
-              ratio=result.compression_ratio,
-              score=score or 0.0,
-              saving=savings.estimated_savings.get(model, "n/a"),
-              model=model),
+            t(
+                "compress.metrics",
+                original=result.original_tokens,
+                compressed=result.compressed_tokens,
+                ratio=result.compression_ratio,
+                score=score or 0.0,
+                saving=savings.estimated_savings.get(model, "n/a"),
+                model=model,
+            ),
             err=True,
         )
 

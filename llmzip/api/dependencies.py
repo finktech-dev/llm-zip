@@ -9,11 +9,14 @@ from llmzip.core.protocols import Compressor, Scorer
 def get_config(request: Request) -> AppConfig:
     return cast(AppConfig, request.app.state.config)
 
+
 def get_lingua(request: Request) -> Compressor:
     return cast(Compressor, request.app.state.lingua)
 
+
 def get_scorer(request: Request) -> Scorer:
     return cast(Scorer, request.app.state.scorer)
+
 
 def get_warning(compression_warning: str | None, accuracy: str, model: str) -> str | None:
     parts: list[str] = []

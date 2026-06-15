@@ -32,10 +32,7 @@ def estimate(
     would_compress = original_tokens >= config.min_tokens_to_compress
 
     savings = calculate_savings(
-        original_text=req.text,
-        compressed_text=None,
-        default_model=model,
-        simulated_ratio=req.ratio
+        original_text=req.text, compressed_text=None, default_model=model, simulated_ratio=req.ratio
     )
 
     return EstimateResponse(

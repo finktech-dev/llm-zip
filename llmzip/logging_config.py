@@ -15,14 +15,34 @@ class JSONFormatter(logging.Formatter):
         }
         # Add extra fields if they exist, filtering out stdlib attributes
         standard_attrs = {
-            'args', 'asctime', 'created', 'exc_info', 'exc_text', 'filename', 'funcName', 
-            'levelname', 'levelno', 'lineno', 'module', 'msecs', 'message', 'msg', 'name', 
-            'pathname', 'process', 'processName', 'relativeCreated', 'stack_info', 'thread', 'threadName'
+            "args",
+            "asctime",
+            "created",
+            "exc_info",
+            "exc_text",
+            "filename",
+            "funcName",
+            "levelname",
+            "levelno",
+            "lineno",
+            "module",
+            "msecs",
+            "message",
+            "msg",
+            "name",
+            "pathname",
+            "process",
+            "processName",
+            "relativeCreated",
+            "stack_info",
+            "thread",
+            "threadName",
         }
         for key, value in record.__dict__.items():
-            if key not in standard_attrs and key != 'event':
+            if key not in standard_attrs and key != "event":
                 log_record[key] = value
         return json.dumps(log_record)
+
 
 class ColorFormatter(logging.Formatter):
     COLORS = {
@@ -39,10 +59,11 @@ class ColorFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt, datefmt="%Y-%m-%d %H:%M:%S")
         return formatter.format(record)
 
+
 def setup_logging(log_level: str = "INFO") -> None:
     root_logger = logging.getLogger("llmzip")
     if root_logger.handlers:
-        return # Already configured
+        return  # Already configured
 
     actual_log_level = os.environ.get("LOG_LEVEL", log_level)
     root_logger.setLevel(actual_log_level)
@@ -56,10 +77,17 @@ def setup_logging(log_level: str = "INFO") -> None:
     # Rotating File Handler (JSON)
     log_file = os.environ.get("LOG_FILE", "logs/llmzip.log")
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
-    file_handler = RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5)
+    file_handler = RotatingFileHandler(log_file, maxBytes=10 * 1024 * 1024, backupCount=5)
     file_handler.setFormatter(JSONFormatter())
     root_logger.addHandler(file_handler)
 
     # Silence noise
-    for name in ["httpx", "httpcore", "llmlingua", "sentence_transformers", "transformers", "torch"]:
+    for name in [
+        "httpx",
+        "httpcore",
+        "llmlingua",
+        "sentence_transformers",
+        "transformers",
+        "torch",
+    ]:
         logging.getLogger(name).setLevel(logging.WARNING)

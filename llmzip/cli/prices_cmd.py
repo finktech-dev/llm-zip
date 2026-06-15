@@ -1,4 +1,3 @@
-
 import typer
 
 from llmzip.i18n import t
@@ -56,7 +55,9 @@ def _print_providers(data: dict[str, PriceEntry]) -> None:
     typer.echo("")
 
 
-def _print_table(data: dict[str, PriceEntry], note: str, provider: str | None, show_all: bool) -> None:
+def _print_table(
+    data: dict[str, PriceEntry], note: str, provider: str | None, show_all: bool
+) -> None:
     from rich.console import Console
     from rich.table import Table
 
@@ -64,9 +65,9 @@ def _print_table(data: dict[str, PriceEntry], note: str, provider: str | None, s
     console.print(f"\n[dim]{note}[/dim]\n")
 
     table = Table(show_header=True, header_style="bold blue")
-    table.add_column(t('prices.header'), style="cyan", no_wrap=True)
-    table.add_column(t('prices.col_input'), justify="right")
-    table.add_column(t('prices.col_output'), justify="right")
+    table.add_column(t("prices.header"), style="cyan", no_wrap=True)
+    table.add_column(t("prices.col_input"), justify="right")
+    table.add_column(t("prices.col_output"), justify="right")
 
     # Safe list of undeniably legacy models to hide by default
     legacy_prefixes = (
@@ -83,18 +84,14 @@ def _print_table(data: dict[str, PriceEntry], note: str, provider: str | None, s
     for model, entry in sorted(data.items()):
         if provider and not model.lower().startswith(provider.lower()):
             continue
-        
+
         # Extract the actual model name without the provider prefix (e.g. "anthropic.claude-v1" -> "claude-v1")
         clean_model_name = model.split(".")[-1] if "." in model else model.split("/")[-1]
 
         if not show_all and any(clean_model_name.startswith(prefix) for prefix in legacy_prefixes):
             continue
 
-        table.add_row(
-            model,
-            f"{entry['input']:.4f}",
-            f"{entry['output']:.4f}"
-        )
+        table.add_row(model, f"{entry['input']:.4f}", f"{entry['output']:.4f}")
         found = True
 
     if not found and provider:

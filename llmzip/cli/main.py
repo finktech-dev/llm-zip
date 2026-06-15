@@ -36,7 +36,9 @@ def version() -> None:
     import typer
 
     from llmzip import __version__
+
     typer.echo(f"llm-zip {__version__}")
+
 
 if __name__ == "__main__":
     app()

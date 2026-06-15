@@ -70,13 +70,11 @@ def load() -> AppConfig:
         api_key = api_key_val if api_key_val else None
 
         deploy_mode = os.environ.get(
-            "DEPLOY_MODE",
-            parser.get("server", "DEPLOY_MODE", fallback="monolith")
+            "DEPLOY_MODE", parser.get("server", "DEPLOY_MODE", fallback="monolith")
         ).lower()
         # Environment variable takes precedence for container linking
         models_url = os.environ.get(
-            "MODELS_URL", 
-            parser.get("server", "MODELS_URL", fallback="http://llmzip-models:8001")
+            "MODELS_URL", parser.get("server", "MODELS_URL", fallback="http://llmzip-models:8001")
         ).strip()
 
         return AppConfig(
@@ -107,18 +105,17 @@ def load() -> AppConfig:
                     "LLMZIP_CACHE_DIR",
                     parser.get("storage", "CACHE_DIR", fallback=""),
                 )
-            ) if os.environ.get("LLMZIP_CACHE_DIR") or parser.get("storage", "CACHE_DIR", fallback="") else None,
+            )
+            if os.environ.get("LLMZIP_CACHE_DIR") or parser.get("storage", "CACHE_DIR", fallback="")
+            else None,
             rate_limit_enabled=parser.get("rate_limit", "ENABLED", fallback="false").lower()
             == "true",
-            rate_limit_rpm=int(
-                parser.get("rate_limit", "REQUESTS_PER_MINUTE", fallback="60")
-            ),
-            rate_limit_rpd=int(
-                parser.get("rate_limit", "REQUESTS_PER_DAY", fallback="10000")
-            ),
+            rate_limit_rpm=int(parser.get("rate_limit", "REQUESTS_PER_MINUTE", fallback="60")),
+            rate_limit_rpd=int(parser.get("rate_limit", "REQUESTS_PER_DAY", fallback="10000")),
             max_file_size_mb=int(parser.get("server", "MAX_FILE_SIZE_MB", fallback="50")),
-            file_conversion_enabled=parser.get("features", "FILE_CONVERSION", fallback="true")
-            .lower()
+            file_conversion_enabled=parser.get(
+                "features", "FILE_CONVERSION", fallback="true"
+            ).lower()
             == "true",
             lang=parser.get("cli", "LANG", fallback="").strip(),
         )

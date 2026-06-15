@@ -35,6 +35,7 @@ class _HealthCheckFilter(logging.Filter):
             for path in ["GET /health", "GET /ready", "GET /health/live", "GET /health/ready"]
         )
 
+
 logging.getLogger("uvicorn.access").addFilter(_HealthCheckFilter())
 setup_logging()
 logger = logging.getLogger("llmzip.api")
@@ -56,7 +57,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     if config.deploy_mode == "split":
         logger.info("Operating in SPLIT mode. Connecting to remote models at %s", config.models_url)
-        
+
         # Polling for remote service to be ready
         retries = 60
         ready = False
@@ -69,16 +70,20 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                         break
                 except Exception:
                     pass
-                
+
                 logger.info("Waiting for remote models service... (%d/%d)", i + 1, retries)
                 await asyncio.sleep(5)
-        
+
         if not ready:
             logger.critical("Remote models service failed to load within 5 minutes.")
             raise RuntimeError("Remote models service unavailable")
 
-        app.state.lingua = RemoteLinguaAdapter(config.models_url, timeout=float(config.inference_timeout))
-        app.state.scorer = RemoteSemanticScorer(config.models_url, timeout=float(config.scorer_timeout))
+        app.state.lingua = RemoteLinguaAdapter(
+            config.models_url, timeout=float(config.inference_timeout)
+        )
+        app.state.scorer = RemoteSemanticScorer(
+            config.models_url, timeout=float(config.scorer_timeout)
+        )
         set_models_loaded(True)
     else:
         logger.info("Operating in MONOLITH mode. Loading models locally.")
@@ -111,7 +116,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 def create_app() -> FastAPI:
     config = load()
-    
+
     app = FastAPI(
         title="llm-zip",
         description="Context compression sidecar for LLM applications.",
@@ -124,29 +129,40 @@ def create_app() -> FastAPI:
         app.state.limiter = limiter
         app.add_exception_handler(
             RateLimitExceeded,
-            cast(Callable[[Request, Exception], Response | Awaitable[Response]], _rate_limit_exceeded_handler)
+            cast(
+                Callable[[Request, Exception], Response | Awaitable[Response]],
+                _rate_limit_exceeded_handler,
+            ),
         )
         app.add_middleware(SlowAPIMiddleware)
 
     @app.middleware("http")
     async def auth_middleware(
-        request: Request,
-        call_next: Callable[[Request], Awaitable[Response]]
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         # request.app.state.config is set in lifespan.
         # Fallback for tests or startup edge cases.
         config: AppConfig | None = getattr(request.app.state, "config", None)
-        
+
         if config is None or config.api_key is None:
             return await call_next(request)
 
         # Public endpoints
         allowed_paths = {
-            "/health", "/ready", "/health/live", "/health/ready",
-            "/v1/info", "/docs", "/openapi.json", "/redoc",
-            "/v1/health", "/v1/ready" # safety check for prefixed routes if any
+            "/health",
+            "/ready",
+            "/health/live",
+            "/health/ready",
+            "/v1/info",
+            "/docs",
+            "/openapi.json",
+            "/redoc",
+            "/v1/health",
+            "/v1/ready",  # safety check for prefixed routes if any
         }
-        if request.url.path in allowed_paths or request.url.path.startswith(("/docs", "/redoc", "/openapi.json")):
+        if request.url.path in allowed_paths or request.url.path.startswith(
+            ("/docs", "/redoc", "/openapi.json")
+        ):
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")
@@ -171,6 +187,7 @@ def create_app() -> FastAPI:
 
 def get_app() -> FastAPI:
     return create_app()
+
 
 if __name__ != "__main__":
     try:
