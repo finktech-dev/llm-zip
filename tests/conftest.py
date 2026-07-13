@@ -9,3 +9,18 @@ def reset_ignore_patterns() -> None:
     ignore_mod._patterns = None
     yield
     ignore_mod._patterns = None
+
+
+@pytest.fixture(autouse=True)
+def reset_limiter_storage() -> None:
+    """Reset rate limiting state between all tests."""
+    from llmzip.api.limiter import limiter
+
+    try:
+        limiter.limiter.storage.reset()
+    except Exception:
+        pass
+    limiter.enabled = False
+    yield
+    limiter.enabled = False
+

@@ -32,6 +32,7 @@ MOCK_CONFIG_BASE = {
     "max_file_size_mb": 50,
     "file_conversion_enabled": True,
     "lang": "en",
+    "cache_dir": None,
 }
 
 
