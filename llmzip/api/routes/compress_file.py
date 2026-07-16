@@ -6,11 +6,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
 
-from llmzip.api.dependencies import get_config, get_lingua, get_scorer, get_warning
+from llmzip.api.dependencies import get_config, get_lingua, get_scorer
 from llmzip.api.limiter import get_rpd_limit, get_rpm_limit, limiter
 from llmzip.api.schemas import CompressResponse
 from llmzip.config.loader import AppConfig
-from llmzip.core.ignore import should_skip
 from llmzip.core.protocols import Compressor, Scorer
 from llmzip.core.savings_calculator import calculate_savings
 from llmzip.core.token_counter import count_tokens
@@ -83,36 +82,51 @@ async def compress_file(
     if config.deploy_mode == "split":
         import httpx
 
-        try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                res = await client.post(
-                    f"{config.models_url}/infer/convert_file",
-                    files={"file": (file.filename, content, file.content_type)},
-                )
-            if res.status_code != 200:
-                logger.warning(
-                    "compress error",
-                    extra={
-                        "event": "compress_error",
-                        "error": "remote_conversion_failed",
-                        "status_code": res.status_code,
-                    },
-                )
-                raise HTTPException(status_code=res.status_code, detail=res.text)
+        # Use a persistent client from app state if available (set during lifespan),
+        # falling back to a one-off client for backwards compatibility with tests.
+        _http_client: httpx.AsyncClient | None = getattr(request.app.state, "http_client", None)
+        _close_client = _http_client is None
+        if _http_client is None:
+            _http_client = httpx.AsyncClient(timeout=120.0)
 
-            data = res.json()
-            text = data["text"]
-            conversion_warning = data.get("warning")
+        try:
+            res = await _http_client.post(
+                f"{config.models_url}/infer/convert_file",
+                files={"file": (file.filename, content, file.content_type)},
+            )
         except httpx.RequestError as e:
             raise HTTPException(
                 status_code=503, detail=f"Failed to connect to models server: {e}"
             ) from e
+        finally:
+            if _close_client:
+                await _http_client.aclose()
+
+        if res.status_code != 200:
+            logger.warning(
+                "compress error",
+                extra={
+                    "event": "compress_error",
+                    "error": "remote_conversion_failed",
+                    "status_code": res.status_code,
+                },
+            )
+            raise HTTPException(status_code=res.status_code, detail=res.text)
+
+        data = res.json()
+        text = data["text"]
+        conversion_warning = data.get("warning")
     else:
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
             tmp_path = Path(tmp.name)
         try:
             tmp_path.write_bytes(content)
-            conversion = convert(tmp_path)
+            # MarkItDown/pdfminer.six is fully synchronous and can block for
+            # 10-15 s on large PDFs. Offload to the thread pool so the uvicorn
+            # event loop stays free to handle other requests in parallel.
+            import asyncio
+
+            conversion = await asyncio.to_thread(convert, tmp_path)
             text = conversion.text
             conversion_warning = conversion.warning
         except RuntimeError as exc:
@@ -131,8 +145,14 @@ async def compress_file(
     if not text or len(text.strip()) < 10:
         raise HTTPException(
             status_code=422,
-            detail="File conversion produced no extractable text.",
+            detail=(
+                "File conversion produced no extractable text. "
+                "If this is a scanned PDF or image-based PDF, it has no text layer — "
+                "run it through an OCR tool first before compressing."
+            ),
         )
+
+    from llmzip.core.ignore import should_skip
 
     if should_skip(text, file.filename):
         original_tokens, _ = count_tokens(text, model)
@@ -228,6 +248,8 @@ async def compress_file(
             "skipped": False,
         },
     )
+
+    from llmzip.api.dependencies import get_warning
 
     warning = get_warning(result.warning or conversion_warning, accuracy, model)
 

@@ -19,6 +19,7 @@ class CompressRequest(BaseModel):
     text: str
     ratio: float
     target_model: str
+    preserve_tokens: list[str] | None = None
 
 
 class ScoreRequest(BaseModel):
@@ -107,7 +108,7 @@ def ready() -> dict[str, str | bool]:
 def infer_compress(req: CompressRequest) -> dict[str, str | int | float | None]:
     lingua: LinguaAdapter = app.state.lingua
     try:
-        result = lingua.compress(req.text, req.ratio, req.target_model)
+        result = lingua.compress(req.text, req.ratio, req.target_model, req.preserve_tokens)
         return {
             "compressed_text": result.compressed_text,
             "original_tokens": result.original_tokens,
@@ -116,7 +117,7 @@ def infer_compress(req: CompressRequest) -> dict[str, str | int | float | None]:
             "warning": result.warning,
         }
     except Exception as e:
-        logger.error("Inference error: %s", e)
+        logger.error(f"Inference error: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -127,7 +128,7 @@ def infer_score(req: ScoreRequest) -> dict[str, float | None]:
         score = scorer.score(req.original, req.compressed)
         return {"score": score}
     except Exception as e:
-        logger.error("Scoring error: %s", e)
+        logger.error(f"Scoring error: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -143,5 +144,5 @@ async def infer_convert_file(file: UploadFile = File(...)) -> ConvertFileRespons
             text=result.text, source_format=result.source_format, warning=result.warning
         )
     except Exception as e:
-        logger.error("File conversion error: %s", e)
+        logger.error(f"File conversion error: {e}")
         raise HTTPException(status_code=422, detail=str(e)) from e

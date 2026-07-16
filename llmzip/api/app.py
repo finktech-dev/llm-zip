@@ -1,4 +1,5 @@
 import asyncio
+import hmac
 import importlib.metadata
 import logging
 import os
@@ -58,6 +59,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     if config.deploy_mode == "split":
         logger.info("Operating in SPLIT mode. Connecting to remote models at %s", config.models_url)
 
+        # Persistent async HTTP client shared across all compress_file requests in split mode.
+        # Avoids a new TCP handshake per file upload — same rationale as RemoteLinguaAdapter.
+        app.state.http_client = httpx.AsyncClient(
+            timeout=120.0,
+            limits=httpx.Limits(max_keepalive_connections=10, max_connections=20),
+        )
+
         # Polling for remote service to be ready
         retries = 60
         ready = False
@@ -111,6 +119,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     yield
 
     set_models_loaded(False)
+    # Close persistent HTTP clients (RemoteLinguaAdapter / RemoteSemanticScorer)
+    # so their connection pools are drained cleanly on shutdown.
+    for attr in ("lingua", "scorer"):
+        adapter = getattr(app.state, attr, None)
+        if adapter is not None and hasattr(adapter, "close"):
+            adapter.close()
+    # Close the async HTTP client used by compress_file in split mode.
+    http_client = getattr(app.state, "http_client", None)
+    if http_client is not None:
+        await http_client.aclose()
     logger.info("llm-zip shutting down")
 
 
@@ -170,7 +188,10 @@ def create_app() -> FastAPI:
             return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
 
         provided_key = auth_header.split(" ")[1]
-        if provided_key != config.api_key:
+        # Use hmac.compare_digest to prevent timing attacks: constant-time comparison
+        # regardless of how many characters match, so an attacker cannot infer the
+        # key's length or prefix by measuring response times.
+        if not hmac.compare_digest(provided_key, config.api_key):
             return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
 
         return await call_next(request)
@@ -187,3 +208,11 @@ def create_app() -> FastAPI:
 
 def get_app() -> FastAPI:
     return create_app()
+
+
+if __name__ != "__main__":
+    try:
+        app = create_app()
+    except SystemExit:
+        # Allows importing the module in tests without a config present
+        app = FastAPI()

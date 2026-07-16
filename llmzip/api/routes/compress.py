@@ -114,7 +114,7 @@ def compress(
             warning=get_warning(None, accuracy, model),
         )
 
-    result = lingua.compress(req.text, req.ratio, model)
+    result = lingua.compress(req.text, req.ratio, model, req.preserve_tokens)
     score = scorer.score(req.text, result.compressed_text)
     savings = calculate_savings(req.text, result.compressed_text, model)
     elapsed_ms = int((time.perf_counter() - start) * 1000)
@@ -203,7 +203,7 @@ def compress_batch(
                     reason="skipped_below_threshold",
                 )
 
-            compression = lingua.compress(item.text, item.ratio, model)
+            compression = lingua.compress(item.text, item.ratio, model, item.preserve_tokens)
             score = scorer.score(item.text, compression.compressed_text)
             savings = calculate_savings(item.text, compression.compressed_text, model)
 

@@ -47,3 +47,7 @@ commit_msg.txt
 
 # Internal Docs
 docs-me/
+
+# Temporary audit/issues documents and files
+ISSUES.md
+temps/

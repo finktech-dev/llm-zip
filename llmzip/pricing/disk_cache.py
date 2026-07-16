@@ -54,7 +54,12 @@ def save(prices: dict[str, PriceEntry], meta: dict[str, str]) -> None:
             "meta": meta,
             "_disk_meta": {"fetched_at": time.time()},
         }
-        path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        # Write to a temp file first, then atomically replace the target via
+        # POSIX rename(). This prevents a corrupted prices.json if the process
+        # receives SIGKILL or hits OOM mid-write.
+        tmp_path = path.with_suffix(".json.tmp")
+        tmp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        tmp_path.replace(path)
         logger.debug("Saved prices to disk cache: %s", path)
     except Exception as exc:
         logger.warning("Failed to write disk price cache: %s", exc)

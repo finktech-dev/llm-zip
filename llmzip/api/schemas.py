@@ -7,6 +7,10 @@ class CompressRequest(BaseModel):
     text: str = Field(..., min_length=1)
     ratio: float = Field(default=0.5, ge=0.1, le=0.9)
     model: str | None = Field(default=None)
+    preserve_tokens: list[str] | None = Field(
+        default=None,
+        description="Tokens that must never be removed during compression (e.g. ['ERROR:', 'def ']).",
+    )
 
 
 class CompressResponse(BaseModel):
@@ -26,6 +30,13 @@ class BatchItem(BaseModel):
     text: str = Field(..., min_length=1)
     ratio: float = Field(default=0.5, ge=0.1, le=0.9)
     model: str | None = Field(default=None)
+    preserve_tokens: list[str] | None = Field(
+        default=None,
+        description=(
+            "Per-item token preservation list. Each item in a batch can protect "
+            "different tokens (e.g. 'Error:' for logs, 'def ' for source code)."
+        ),
+    )
 
 
 class BatchRequest(BaseModel):

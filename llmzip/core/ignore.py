@@ -1,6 +1,7 @@
 # llmzip/core/ignore.py
 import fnmatch
 import logging
+import threading
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -24,19 +25,30 @@ def _load_patterns() -> list[str]:
 
 
 _patterns: list[str] | None = None
-
-
-def reload_patterns() -> None:
-    """Force re-loading patterns from disk (useful for testing)."""
-    global _patterns
-    _patterns = _load_patterns()
+_patterns_lock = threading.Lock()
 
 
 def _get_patterns() -> list[str]:
+    """Return cached patterns, loading from disk on first call.
+
+    Uses double-checked locking so that BATCH_WORKERS=N threads don't all
+    race to read the ignore files simultaneously on startup. CPython's GIL
+    makes the bare assignment atomic, but the three disk reads are not — this
+    lock eliminates the redundant I/O without affecting the hot path.
+    """
     global _patterns
     if _patterns is None:
-        reload_patterns()
+        with _patterns_lock:
+            if _patterns is None:  # second check inside lock
+                _patterns = _load_patterns()
     return _patterns if _patterns is not None else []
+
+
+def reload_patterns() -> None:
+    """Invalidate the pattern cache. Useful in tests without module hackery."""
+    global _patterns
+    with _patterns_lock:
+        _patterns = None
 
 
 def should_skip(text: str, filename: str | None = None) -> bool:

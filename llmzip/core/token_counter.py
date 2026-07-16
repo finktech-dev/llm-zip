@@ -1,4 +1,5 @@
 import os
+import threading
 from pathlib import Path
 
 import tiktoken
@@ -11,6 +12,7 @@ _CHARS_PER_TOKEN: dict[str, float] = {
 }
 
 _encoding_cache: dict[str, tiktoken.Encoding | None] = {}
+_encoding_cache_lock = threading.Lock()
 
 
 def _ensure_tiktoken_cache() -> None:
@@ -25,18 +27,25 @@ _ensure_tiktoken_cache()
 
 
 def _get_encoding(model: str) -> tiktoken.Encoding | None:
+    # Fast path: cache hit without acquiring the lock (common case after warmup).
     if model in _encoding_cache:
         return _encoding_cache[model]
-    try:
-        enc = tiktoken.encoding_for_model(model)
-        _encoding_cache[model] = enc
-        return enc
-    except KeyError:
-        _encoding_cache[model] = None
-        return None
-    except Exception:
-        # Transient error (network, timeout, etc.) — do not cache, allow retry next call.
-        return None
+    # Slow path: first call for this model — acquire lock, then double-check.
+    # Prevents multiple threads from all calling tiktoken.encoding_for_model()
+    # simultaneously on startup under BATCH_WORKERS > 1.
+    with _encoding_cache_lock:
+        if model in _encoding_cache:
+            return _encoding_cache[model]
+        try:
+            enc = tiktoken.encoding_for_model(model)
+            _encoding_cache[model] = enc
+            return enc
+        except KeyError:
+            _encoding_cache[model] = None
+            return None
+        except Exception:
+            # Transient error (network, timeout, etc.) — do not cache, allow retry next call.
+            return None
 
 
 def count_tokens(

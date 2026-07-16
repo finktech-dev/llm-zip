@@ -69,19 +69,25 @@ def _sliding_window(text: str, chunk_size: int, target_model: str) -> list[str]:
     chunks: list[str] = []
     start = 0
     while start < len(words):
-        # Binary-search for the largest slice that fits within chunk_size.
-        # In practice chunk_size is ~400 tokens so this is fast.
-        end = min(start + chunk_size, len(words))
-        while end > start:
-            candidate = " ".join(words[start:end])
+        # Real binary search for the largest slice that fits within chunk_size.
+        # O(log n) vs the previous O(n) end -= 1 loop.
+        # For minified blobs with 5000+ tokens this drops from seconds to ms.
+        lo = start + 1
+        hi = min(start + chunk_size, len(words))
+        best = start  # fallback: include at least one word even if it exceeds chunk_size
+
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            candidate = " ".join(words[start:mid])
             cand_len, _ = count_tokens(candidate, target_model)
             if cand_len <= chunk_size:
-                break
-            end -= 1
-        else:
-            # Single word exceeds chunk_size — include it anyway (can't split further)
-            end = start + 1
+                best = mid
+                lo = mid + 1
+            else:
+                hi = mid - 1
 
+        # If no slice of size >= 1 fits, include the single word anyway (can't split further)
+        end = best if best > start else start + 1
         chunks.append(" ".join(words[start:end]))
         start = end
 
@@ -240,7 +246,13 @@ class LinguaAdapter:
             )
             logger.info("Compression model loaded")
 
-    def compress(self, text: str, ratio: float, target_model: str) -> CompressionResult:
+    def compress(
+        self,
+        text: str,
+        ratio: float,
+        target_model: str,
+        preserve_tokens: list[str] | None = None,
+    ) -> CompressionResult:
         if self._compressor is None:
             raise RuntimeError("LinguaAdapter not loaded — call load() first")
 
@@ -249,16 +261,33 @@ class LinguaAdapter:
         try:
             chunks, truncation_warned = self._split_into_chunks(text, target_model)
 
+            # Build force_tokens: always start with the real newline character.
+            # Merge user-supplied preserve_tokens on top, deduplicating while
+            # preserving order. seen is initialised with "\n" (the actual
+            # newline char, not the two-char escape) so the user can't double it.
+            base_force_tokens: list[str] = ["\n"]
+            seen: set[str] = {"\n"}
+            for tok in preserve_tokens or []:
+                if tok and tok not in seen:
+                    base_force_tokens.append(tok)
+                    seen.add(tok)
+
             res = self._compressor.compress_prompt(
                 chunks,
                 rate=ratio,
-                force_tokens=["\n"],
+                force_tokens=base_force_tokens,
             )
 
             compressed_parts: list[str] = res.get("compressed_prompt_list") or []
             if not compressed_parts:
-                fallback = res.get("compressed_prompt") or text
-                compressed_parts = [fallback]
+                # Three-level explicit fallback — never silently swallow errors.
+                fallback = res.get("compressed_prompt")
+                if fallback:
+                    compressed_parts = [fallback]
+                elif text:
+                    compressed_parts = [text]
+                else:
+                    compressed_parts = [""]
 
             full_compressed = "\n".join(p for p in compressed_parts if p)
             if not full_compressed:
